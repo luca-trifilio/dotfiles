@@ -136,3 +136,5 @@ autoload -Uz compinit
 compinit
 # End of Docker CLI completions
 alias config='/usr/bin/git --git-dir=/Users/lucatrifilio/.cfg/ --work-tree=/Users/lucatrifilio'
+
+
