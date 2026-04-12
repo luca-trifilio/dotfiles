@@ -1,2 +1,2 @@
 # TPM installs plugins to ~/.tmux/plugins/ (outside this repo)
-# Nothing to ignore here — tmux/plugins/ no longer exists in the package
+tmux/plugins/
