@@ -35,6 +35,8 @@ dotfiles/tmux/    → ~/.config/tmux    (symlink)
 
 TPM and plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. `tmux.conf` points to `~/.tmux/plugins/tpm/tpm`. On a fresh machine, clone TPM manually then run `prefix + I` inside tmux.
 
+**Pitfall**: if plugins get installed into `~/.config/tmux/plugins/` instead, they'll appear inside the stow package dir as untracked files (git won't stage them, but `ls` shows them). Fix: `rm -rf ~/Progetti/dotfiles/tmux/plugins/`.
+
 ## Current packages
 
 | Package | Target | Notes |
@@ -43,6 +45,7 @@ TPM and plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.
 | `ghostty` | `~/.config/ghostty/` | |
 | `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
 | `zshrc` | `~/` | exception: separate stow call |
+| `opencode` | `~/.config/opencode/` | config: `opencode.json`; plugin dir: `opencode/opencode/` |
 
 ## Day-to-Day Operations
 
