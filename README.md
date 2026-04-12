@@ -11,6 +11,7 @@ dotfiles/
   nvim/        → ~/.config/nvim/     (LazyVim)
   ghostty/     → ~/.config/ghostty/
   tmux/        → ~/.config/tmux/     (plugins/ gitignored)
+  opencode/    → ~/.config/opencode/
   zshrc/       → ~/                  (exception, see below)
 ```
 
