@@ -52,8 +52,6 @@ Ghostty is configured to auto-start tmux via:
 command = /bin/zsh -c 'tmux new-session -A -s main'
 ```
 
-`.zshrc` also has `alias t='tmux new-session -A -s main'` for manually attaching/creating the main session from any shell.
-
 ## Current packages
 
 | Package | Target | Notes |

@@ -33,10 +33,6 @@ This prevents TPM from installing into `~/.config/tmux/plugins/` (which would le
 
 On a fresh machine, bootstrap TPM manually (see below).
 
-## tmux alias
-
-`.zshrc` has `alias t='tmux new-session -A -s main'` — attaches to the `main` session or creates it. Ghostty also auto-starts tmux via `command = /bin/zsh -c 'tmux new-session -A -s main'` in its config.
-
 ## Current packages
 
 | Package | Target | Notes |
