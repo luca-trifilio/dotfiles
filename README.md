@@ -9,8 +9,8 @@ Each app is a package directory. `stow .` symlinks all XDG packages into `~/.con
 ```
 dotfiles/
   nvim/        → ~/.config/nvim/     (LazyVim)
-  ghostty/     → ~/.config/ghostty/
-  tmux/        → ~/.config/tmux/     (plugins/ gitignored)
+  ghostty/     → ~/.config/ghostty/  (auto-starts tmux)
+  tmux/        → ~/.config/tmux/     (plugins at ~/.tmux/plugins/, gitignored here)
   opencode/    → ~/.config/opencode/
   zshrc/       → ~/                  (exception, see below)
 ```

@@ -33,16 +33,33 @@ dotfiles/tmux/    → ~/.config/tmux    (symlink)
 
 ## tmux plugins
 
-TPM and plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. `tmux.conf` points to `~/.tmux/plugins/tpm/tpm`. On a fresh machine, clone TPM manually then run `prefix + I` inside tmux.
+TPM and plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. `tmux.conf` explicitly sets:
 
-**Pitfall**: if plugins get installed into `~/.config/tmux/plugins/` instead, they'll appear inside the stow package dir as untracked files (git won't stage them, but `ls` shows them). Fix: `rm -rf ~/Progetti/dotfiles/tmux/plugins/`.
+```
+set-environment -g TMUX_PLUGIN_MANAGER_PATH "$HOME/.tmux/plugins/"
+```
+
+This prevents TPM from leaking plugins into `~/.config/tmux/plugins/` (which would land inside the repo via the stow symlink). `tmux/plugins/` is also gitignored as a safety net.
+
+**Pitfall**: if plugins appear in `~/Progetti/dotfiles/tmux/plugins/`, do NOT delete that dir — it breaks Dracula's script paths. Instead, just ensure `TMUX_PLUGIN_MANAGER_PATH` is set and gitignore `tmux/plugins/`.
+
+On a fresh machine: clone TPM manually (`git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm`), then run `prefix + I` inside tmux.
+
+## tmux + Ghostty auto-start
+
+Ghostty is configured to auto-start tmux via:
+```
+command = /bin/zsh -c 'tmux new-session -A -s main'
+```
+
+`.zshrc` also has `alias t='tmux new-session -A -s main'` for manually attaching/creating the main session from any shell.
 
 ## Current packages
 
 | Package | Target | Notes |
 |---|---|---|
 | `nvim` | `~/.config/nvim/` | LazyVim |
-| `ghostty` | `~/.config/ghostty/` | |
+| `ghostty` | `~/.config/ghostty/` | auto-starts tmux on open |
 | `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
 | `zshrc` | `~/` | exception: separate stow call |
 | `opencode` | `~/.config/opencode/` | config: `opencode.json`; plugin dir: `opencode/opencode/` |

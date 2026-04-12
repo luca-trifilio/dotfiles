@@ -48,6 +48,8 @@
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
 
+command = /bin/zsh -c 'tmux new-session -A -s main'
+
 theme = dracula
 font-family = JetBrainsMono Nerd Font Mono
 font-size = 14

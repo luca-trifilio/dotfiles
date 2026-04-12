@@ -23,18 +23,29 @@ When adding other home-target packages, follow the same pattern.
 
 ## tmux plugins
 
-TPM and all plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. This keeps the symlinked dir clean and nothing plugin-related needs to be gitignored.
+TPM and all plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. `tmux.conf` explicitly sets:
 
-`tmux.conf` points TPM to `~/.tmux/plugins/tpm/tpm`. On a fresh machine, bootstrap manually (see below).
+```
+set-environment -g TMUX_PLUGIN_MANAGER_PATH "$HOME/.tmux/plugins/"
+```
+
+This prevents TPM from installing into `~/.config/tmux/plugins/` (which would leak into the repo via the stow symlink). `tmux/plugins/` is also gitignored as a safety net.
+
+On a fresh machine, bootstrap TPM manually (see below).
+
+## tmux alias
+
+`.zshrc` has `alias t='tmux new-session -A -s main'` — attaches to the `main` session or creates it. Ghostty also auto-starts tmux via `command = /bin/zsh -c 'tmux new-session -A -s main'` in its config.
 
 ## Current packages
 
 | Package | Target | Notes |
 |---|---|---|
 | `nvim` | `~/.config/nvim/` | LazyVim |
-| `ghostty` | `~/.config/ghostty/` | |
+| `ghostty` | `~/.config/ghostty/` | auto-starts tmux on open |
 | `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
 | `zshrc` | `~/` | exception: separate stow call |
+| `opencode` | `~/.config/opencode/` | |
 
 ## Adding a new XDG package
 
