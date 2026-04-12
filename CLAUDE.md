@@ -13,6 +13,10 @@ Personal dotfiles managed with **GNU Stow**. Each app has a package directory wh
 - `zshrc/.zshrc` → `~/.zshrc`
 - `nvim/.config/nvim/init.lua` → `~/.config/nvim/init.lua`
 
+## Repo Location
+
+`~/Progetti/dotfiles`
+
 ## Adding a New Package
 
 ```zsh
@@ -20,6 +24,14 @@ mkdir -p <package>/<path-relative-to-home>/
 mv ~/<path> <package>/<path-relative-to-home>/
 stow <package>
 git add <package> && git commit -m "add <package>"
+```
+
+## Other Stow Commands
+
+```zsh
+stow -D <package>    # remove symlinks (unstow)
+stow -R <package>    # restow (remove + re-apply)
+stow -nv <package>   # dry-run, shows what would happen
 ```
 
 ## Applying Changes on a New Machine
