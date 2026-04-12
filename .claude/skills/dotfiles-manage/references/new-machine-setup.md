@@ -2,8 +2,6 @@
 
 ## Pre-requisites
 
-Install git and stow. On macOS:
-
 ```zsh
 xcode-select --install
 brew install stow
@@ -23,18 +21,27 @@ git clone https://github.com/luca-trifilio/dotfiles.git ~/Progetti/dotfiles
 cd ~/Progetti/dotfiles && ./setup.sh
 ```
 
-This runs `stow nvim ghostty zshrc tmux` with `--target=~`.
+This runs:
+- `stow .` → symlinks `nvim/`, `ghostty/`, `tmux/` into `~/.config/`
+- `stow --target="$HOME" zshrc` → symlinks `.zshrc`, `.p10k.zsh` into `~/`
 
 If stow fails due to existing files, back them up first:
-
 ```zsh
-mkdir -p ~/.config-backup
-# move conflicting files to backup, then re-run ./setup.sh
+mv ~/.config/nvim ~/.config/nvim.bak   # example
+cd ~/Progetti/dotfiles && ./setup.sh
 ```
 
-### 3. Done
+### 3. Bootstrap tmux plugins
 
-Source the shell config or open a new terminal:
+TPM lives outside the dotfiles repo at `~/.tmux/plugins/tpm`:
+
+```zsh
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+```
+
+Then open tmux and press `prefix + I` to install all plugins listed in `tmux.conf`.
+
+### 4. Done
 
 ```zsh
 source ~/.zshrc
@@ -46,5 +53,9 @@ source ~/.zshrc
 
 ```zsh
 git clone https://github.com/luca-trifilio/dotfiles.git ~/Progetti/dotfiles && \
-cd ~/Progetti/dotfiles && ./setup.sh && source ~/.zshrc
+cd ~/Progetti/dotfiles && ./setup.sh && \
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm && \
+source ~/.zshrc
 ```
+
+Then open tmux → `prefix + I`.

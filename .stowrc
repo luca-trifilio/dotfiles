@@ -1,5 +1,8 @@
---target=~
+--target=~/.config
 --ignore=.stowrc
 --ignore=DS_Store
 --ignore=setup.sh
 --ignore=README.md
+--ignore=CLAUDE.md
+--ignore=.claude
+--ignore=^zshrc$

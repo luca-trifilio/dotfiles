@@ -15,66 +15,81 @@ Dotfiles are tracked via a normal git repo at `~/Progetti/dotfiles`, managed wit
 | Remote | `https://github.com/luca-trifilio/dotfiles.git` |
 | Branch | `main` |
 
-## Structure
+## How stow works
 
-Each app has its own package directory. Files are laid out relative to `~` (stow target).
+`.stowrc` sets `--target=~/.config`. Running `stow .` from inside the repo treats the **entire repo as a single package** — stow maps each top-level app directory into `~/.config/` as a directory symlink (tree folding).
 
 ```
-dotfiles/
-  zshrc/
-    .zshrc
-    .p10k.zsh
-  nvim/
-    .config/nvim/   ← LazyVim config
-  ghostty/
-    .config/ghostty/
-      config
-  tmux/
-    .config/tmux/
-      tmux.conf
-  .stowrc           # --target=~
-  setup.sh          # stow nvim ghostty zshrc tmux
+dotfiles/nvim/    → ~/.config/nvim    (symlink)
+dotfiles/ghostty/ → ~/.config/ghostty (symlink)
+dotfiles/tmux/    → ~/.config/tmux    (symlink)
 ```
+
+## zshrc exception
+
+`zshrc/` targets `~/` not `~/.config/`. Two things handle this:
+1. `.stowrc` has `--ignore=^zshrc$` — `stow .` skips it
+2. `setup.sh` runs `stow --target="$HOME" zshrc` separately
+
+## tmux plugins
+
+TPM and plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. `tmux.conf` points to `~/.tmux/plugins/tpm/tpm`. On a fresh machine, clone TPM manually then run `prefix + I` inside tmux.
+
+## Current packages
+
+| Package | Target | Notes |
+|---|---|---|
+| `nvim` | `~/.config/nvim/` | LazyVim |
+| `ghostty` | `~/.config/ghostty/` | |
+| `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
+| `zshrc` | `~/` | exception: separate stow call |
 
 ## Day-to-Day Operations
 
 ```zsh
 cd ~/Progetti/dotfiles
-git add zshrc/.zshrc
+git add <file>
 git commit -m "message"
 git push
 ```
 
-## Adding a New App
+## Adding a new XDG package (→ ~/.config/)
 
-1. Create `<package>/<path-relative-to-home>/` inside the repo
-2. Move the real file into it
-3. Run `stow <package>` to create the symlink
-4. Commit
-
-Example — adding `.gitconfig`:
 ```zsh
-mkdir -p ~/Progetti/dotfiles/git
-mv ~/.gitconfig ~/Progetti/dotfiles/git/
-cd ~/Progetti/dotfiles && stow git
-git add git && git commit -m "add gitconfig"
+mkdir ~/Progetti/dotfiles/<app>
+mv ~/.config/<app> ~/Progetti/dotfiles/<app>
+cd ~/Progetti/dotfiles && stow .
+git add <app> && git commit -m "add <app>"
 ```
 
-## Currently Tracked Packages
+No changes to `.stowrc` or `setup.sh` needed.
 
-| Package | Symlinks to |
-|---|---|
-| `zshrc` | `~/.zshrc`, `~/.p10k.zsh` |
-| `nvim` | `~/.config/nvim` |
-| `ghostty` | `~/.config/ghostty` |
+## Adding a home-target package (→ ~/)
+
+```zsh
+mkdir ~/Progetti/dotfiles/<app>
+mv ~/.<file> ~/Progetti/dotfiles/<app>/
+# Add to .stowrc:  --ignore=^<app>$
+# Add to setup.sh: stow --target="$HOME" <app>
+cd ~/Progetti/dotfiles && stow --target="$HOME" <app>
+git add <app> .stowrc setup.sh && git commit -m "add <app>"
+```
+
+## Other stow commands
+
+```zsh
+stow -nv .   # dry-run
+stow -D .    # remove XDG symlinks
+stow -R .    # restow
+```
 
 ## Files Safe to Add
 
-| File | Package name |
-|---|---|
-| `~/.gitconfig` | `git` |
-| `~/.config/gh/config.yml` | `gh` |
-| `~/.config/opencode/opencode.json` | `opencode` |
+| File | Package | Type |
+|---|---|---|
+| `~/.gitconfig` | `git` | home-target |
+| `~/.config/gh/config.yml` | `gh` | XDG |
+| `~/.config/opencode/opencode.json` | `opencode` | XDG |
 
 ## Files to NEVER Track
 
@@ -83,7 +98,6 @@ git add git && git commit -m "add gitconfig"
 | `~/.ssh/` | Private keys |
 | `~/.config/gh/hosts.yml` | OAuth tokens |
 | `~/.gnupg/` | Private keys |
-| `~/.config/opencode/node_modules/` | Generated artifacts |
 | Any `.env` file | May contain secrets |
 
 Always scan before adding:

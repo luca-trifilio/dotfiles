@@ -1,49 +1,77 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Personal dotfiles at `~/Progetti/dotfiles`, managed with **GNU Stow**.
 
-## Overview
+## How stow works here
 
-Personal dotfiles managed with **GNU Stow**. Each app has a package directory whose contents are symlinked into `~` via `stow <package>`.
+`.stowrc` sets `--target=~/.config`. Running `stow .` from inside the repo treats the repo as a single package: stow maps each top-level directory into `~/.config/` via directory symlinks (tree folding).
 
-## Stow Mechanics
-
-`.stowrc` sets `--target=~`. Files inside a package must mirror the path relative to `~`:
-
-- `zshrc/.zshrc` → `~/.zshrc`
-- `nvim/.config/nvim/init.lua` → `~/.config/nvim/init.lua`
-
-## Repo Location
-
-`~/Progetti/dotfiles`
-
-## Adding a New Package
-
-```zsh
-mkdir -p <package>/<path-relative-to-home>/
-mv ~/<path> <package>/<path-relative-to-home>/
-stow <package>
-git add <package> && git commit -m "add <package>"
+```
+dotfiles/nvim/    → ~/.config/nvim    (symlink)
+dotfiles/ghostty/ → ~/.config/ghostty (symlink)
+dotfiles/tmux/    → ~/.config/tmux    (symlink)
 ```
 
-## Other Stow Commands
+## zshrc exception
+
+`zshrc/` contains `~`-relative files (`.zshrc`, `.p10k.zsh`) — they must go to `~/`, not `~/.config/`. Two things handle this:
+
+1. `.stowrc` has `--ignore=^zshrc$` so `stow .` skips it
+2. `setup.sh` runs a separate `stow --target="$HOME" zshrc`
+
+When adding other home-target packages, follow the same pattern.
+
+## tmux plugins
+
+TPM and all plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. This keeps the symlinked dir clean and nothing plugin-related needs to be gitignored.
+
+`tmux.conf` points TPM to `~/.tmux/plugins/tpm/tpm`. On a fresh machine, bootstrap manually (see below).
+
+## Current packages
+
+| Package | Target | Notes |
+|---|---|---|
+| `nvim` | `~/.config/nvim/` | LazyVim |
+| `ghostty` | `~/.config/ghostty/` | |
+| `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
+| `zshrc` | `~/` | exception: separate stow call |
+
+## Adding a new XDG package
 
 ```zsh
-stow -D <package>    # remove symlinks (unstow)
-stow -R <package>    # restow (remove + re-apply)
-stow -nv <package>   # dry-run, shows what would happen
+mkdir ~/Progetti/dotfiles/<app>
+mv ~/.config/<app> ~/Progetti/dotfiles/<app>   # or copy files manually
+cd ~/Progetti/dotfiles && stow .
+git add <app> && git commit -m "add <app>"
 ```
 
-## Applying Changes on a New Machine
+No changes to `.stowrc` or `setup.sh` needed — `stow .` picks it up automatically.
+
+## Adding a home-target package
 
 ```zsh
-./setup.sh   # runs: stow nvim ghostty zshrc tmux
+mkdir ~/Progetti/dotfiles/<app>
+mv ~/.<file> ~/Progetti/dotfiles/<app>/
+# Add to .stowrc: --ignore=^<app>$
+# Add to setup.sh: stow --target="$HOME" <app>
+cd ~/Progetti/dotfiles && stow --target="$HOME" <app>
+git add <app> .stowrc setup.sh && git commit -m "add <app>"
 ```
 
-## Current Packages
+## Other stow commands
 
-| Package | Target path |
-|---|---|
-| `zshrc` | `~/.zshrc`, `~/.p10k.zsh` |
-| `nvim` | `~/.config/nvim/` (LazyVim) |
-| `ghostty` | `~/.config/ghostty/` |
+```zsh
+stow -nv .           # dry-run, preview what would be linked
+stow -D .            # remove all XDG symlinks
+stow -R .            # restow (remove + re-apply)
+```
+
+## Fresh machine bootstrap
+
+```zsh
+git clone https://github.com/luca-trifilio/dotfiles.git ~/Progetti/dotfiles
+cd ~/Progetti/dotfiles && ./setup.sh
+# Then install TPM for tmux:
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+# Inside tmux: prefix + I to install plugins
+```
