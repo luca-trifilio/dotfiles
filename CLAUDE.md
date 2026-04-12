@@ -47,4 +47,3 @@ stow -nv <package>   # dry-run, shows what would happen
 | `zshrc` | `~/.zshrc`, `~/.p10k.zsh` |
 | `nvim` | `~/.config/nvim/` (LazyVim) |
 | `ghostty` | `~/.config/ghostty/` |
-| `tmux` | `~/.config/tmux/tmux.conf` |

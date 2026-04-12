@@ -67,7 +67,6 @@ git add git && git commit -m "add gitconfig"
 | `zshrc` | `~/.zshrc`, `~/.p10k.zsh` |
 | `nvim` | `~/.config/nvim` |
 | `ghostty` | `~/.config/ghostty` |
-| `tmux` | `~/.config/tmux/tmux.conf` |
 
 ## Files Safe to Add
 
