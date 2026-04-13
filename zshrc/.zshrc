@@ -9,7 +9,7 @@ fi
 export PATH=$HOME/.local/bin:$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="/Users/lucatrifilio/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -118,23 +118,21 @@ alias cdd=cd ~
 eval "$(zoxide init zsh)"
 
 # bun completions
-[ -s "/Users/lucatrifilio/.bun/_bun" ] && source "/Users/lucatrifilio/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-alias claude-mem='/Users/lucatrifilio/.bun/bin/bun "/Users/lucatrifilio/.claude/plugins/cache/thedotmack/claude-mem/10.5.5/scripts/worker-service.cjs"'
-
 # Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/lucatrifilio/.lmstudio/bin"
+export PATH="$PATH:$HOME/.lmstudio/bin"
 # End of LM Studio CLI section
 
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=(/Users/lucatrifilio/.docker/completions $fpath)
+fpath=($HOME/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
 # End of Docker CLI completions
-alias config='/usr/bin/git --git-dir=/Users/lucatrifilio/.cfg/ --work-tree=/Users/lucatrifilio'
+alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 
 
