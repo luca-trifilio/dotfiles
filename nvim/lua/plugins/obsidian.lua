@@ -5,6 +5,11 @@ return {
   ---@type obsidian.config
   opts = {
     legacy_commands = false, -- this will be removed in the next major release
+    ui = {
+      hl_groups = {
+        ObsidianRefText = { fg = "#8BE9FD", underline = true },
+      },
+    },
     workspaces = {
       {
         name = "personal",
