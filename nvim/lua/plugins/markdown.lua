@@ -1,5 +1,13 @@
 return {
   {
+    "saghen/blink.cmp",
+    opts = {
+      enabled = function()
+        return vim.bo.filetype ~= "markdown"
+      end,
+    },
+  },
+  {
     "MeanderingProgrammer/render-markdown.nvim",
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" },
     ---@module 'render-markdown'
