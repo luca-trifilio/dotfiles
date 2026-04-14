@@ -65,4 +65,4 @@ keybind = ctrl+three=text:\x023
 keybind = ctrl+four=text:\x024
 keybind = ctrl+five=text:\x025
 
-keybind = shift+enter=text:\x0a
+keybind = shift+enter=text:\x1b[13;2u
