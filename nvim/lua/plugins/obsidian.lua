@@ -6,6 +6,7 @@ return {
   opts = {
     legacy_commands = false, -- this will be removed in the next major release
     ui = {
+      bullets = false,
       hl_groups = {
         ObsidianRefText = { fg = "#8BE9FD", underline = true },
       },
@@ -19,6 +20,10 @@ return {
         name = "work",
         path = "~/Documents/Taccuino Cerusico",
       },
+    },
+    daily_notes = {
+      folder = "20 - Diario",
+      date_format = "%Y/%m/%Y-%m-%d",
     },
   },
 }
