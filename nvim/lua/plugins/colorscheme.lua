@@ -1,5 +1,5 @@
 return {
-  { "Mofiqul/dracula.nvim" },
+  { "luca-trifilio/dracula.nvim" },
   {
     "LazyVim/LazyVim",
     opts = {
