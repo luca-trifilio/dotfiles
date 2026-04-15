@@ -2,9 +2,12 @@ return {
   {
     "saghen/blink.cmp",
     opts = {
-      enabled = function()
-        return vim.bo.filetype ~= "markdown"
-      end,
+      sources = {
+        per_filetype = {
+          -- In markdown, only use obsidian sources (suppress generic completions)
+          markdown = {},
+        },
+      },
     },
   },
   {

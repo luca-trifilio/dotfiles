@@ -52,22 +52,28 @@ vim.api.nvim_create_autocmd("FileType", {
 
 `linebreak` wraps at word boundaries instead of mid-word.
 
-## Problem: autocomplete shows up in markdown
+## Problem: autocomplete shows up in markdown but obsidian.nvim completion must stay
 
-blink.cmp (LazyVim default) triggers completion in markdown files.
+blink.cmp triggers generic completions (LSP, buffer, snippets) in markdown.
+**Do NOT** use `enabled = function() return filetype ~= "markdown" end` — that kills
+obsidian.nvim's completion sources too (`obsidian`, `obsidian_new`, `obsidian_tags`).
 
-**Fix** — add to any plugin file (e.g. `markdown.lua`):
+**Fix** — set `per_filetype.markdown = {}` and let obsidian.nvim auto-inject its sources:
 
 ```lua
 {
   "saghen/blink.cmp",
   opts = {
-    enabled = function()
-      return vim.bo.filetype ~= "markdown"
-    end,
+    sources = {
+      per_filetype = {
+        markdown = {},
+      },
+    },
   },
 },
 ```
+
+obsidian.nvim detects a `markdown` key in `per_filetype` and injects `obsidian`, `obsidian_new`, `obsidian_tags` automatically (see `completion/plugin_initializers/blink.lua:inject_sources`). Using an explicit list means manually tracking new sources added by the plugin.
 
 ## Problem: obsidian.nvim and render-markdown.nvim both render bullets
 
@@ -79,9 +85,22 @@ Result: double rendering, degraded appearance.
 ```lua
 -- in obsidian.nvim opts:
 ui = {
-  bullets = false,
+  bullets = vim.NIL, -- NOT false: false passes the ~= nil guard and crashes ui.lua:223
   -- other hl_groups config...
 },
+```
+
+`bullets` is typed `obsidian.config.UICharSpec|?`. Setting `false` causes `attempt to index field 'bullets' (a boolean value)` at `ui.lua:223`. `vim.NIL` tells lazy.nvim to set the key to `nil` during opts merge, which skips the rendering block.
+
+## Problem: obsidian.nvim adds id/aliases/tags frontmatter to every note
+
+Default `frontmatter.func` (`builtin.lua:151`) injects `{ id, aliases, tags }` on open/save.
+
+**Fix**:
+
+```lua
+-- in obsidian.nvim opts:
+frontmatter = { enabled = false },
 ```
 
 ## Daily notes: hierarchical folder structure
