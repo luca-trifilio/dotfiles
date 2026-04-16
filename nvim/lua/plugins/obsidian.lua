@@ -20,6 +20,9 @@ return {
       folder = "20 - Diario",
       date_format = "%Y/%m/%Y-%m-%d",
     },
-    frontmatter = { enabled = false },
+    frontmatter = {
+      enabled = false,
+      func = function() return {} end,
+    },
   },
 }
