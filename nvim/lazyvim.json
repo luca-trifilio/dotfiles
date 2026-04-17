@@ -1,7 +1,8 @@
 {
   "extras": [
     "lazyvim.plugins.extras.editor.mini-files",
-    "lazyvim.plugins.extras.lang.java"
+    "lazyvim.plugins.extras.lang.java",
+    "lazyvim.plugins.extras.util.dot"
   ],
   "install_version": 8,
   "news": {
