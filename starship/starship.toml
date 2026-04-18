@@ -3,7 +3,8 @@
 palette = "catppuccin_macchiato"
 add_newline = true
 
-format = "$directory$git_branch$git_status$character"
+format = "$directory$character"
+right_format = "$git_branch$git_status"
 
 [character]
 success_symbol = "[[󰄛](green) ❯](peach)"
@@ -11,16 +12,16 @@ error_symbol = "[[󰄛](red) ❯](peach)"
 vimcmd_symbol = "[󰄛 ❮](subtext1)"
 
 [directory]
-truncation_length = 3
-truncate_to_repo = true
+truncation_length = 100
+truncate_to_repo = false
 style = "bold lavender"
 read_only = " 󰌾"
 read_only_style = "overlay2"
 
 [git_branch]
 style = "bold mauve"
-symbol = " "
-format = "[$symbol$branch]($style) "
+symbol = " "
+format = "[$symbol$branch(:$remote_branch)]($style) "
 
 [git_status]
 style = "peach"
