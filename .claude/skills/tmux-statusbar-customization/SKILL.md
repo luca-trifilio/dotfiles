@@ -132,6 +132,56 @@ tmux kill-server
 # then reopen Ghostty / restart tmux
 ```
 
+## Catppuccin plugin native API
+
+This section covers the `catppuccin/tmux` plugin's built-in option API (alternative to the standalone script approach).
+
+### Window pill structure
+
+With `@catppuccin_window_status_style "rounded"` and `number_position "right"`, each window tab is a two-section pill:
+
+```
+[ text section (bg=text_color) | number section (bg=number_color) ]
+```
+
+Key options:
+
+```tmux
+set -g @catppuccin_window_current_text_color "#{@thm_peach}"       # bg of text section
+set -g @catppuccin_window_current_number_color "#{@thm_surface_1}" # bg of number section
+set -g @catppuccin_window_current_text "#W"                        # content (window name)
+set -g @catppuccin_window_current_number "#I"                      # content (window index)
+```
+
+### Overriding foreground colors inline
+
+The plugin hardcodes `@thm_fg` as text fg and `@thm_crust` as number fg. To override, embed format strings directly in the text/number options:
+
+```tmux
+set -g @catppuccin_window_current_text "#[fg=#{@thm_surface_1}]#W"
+set -g @catppuccin_window_current_number "#[fg=#{@thm_peach}]#I"
+```
+
+### Status module colors
+
+Each status module (cpu, ram, etc.) uses `@catppuccin_<module>_color` for the icon color:
+
+```tmux
+set -g @catppuccin_cpu_color "#{@thm_mauve}"
+set -g @catppuccin_ram_color "#{@thm_teal}"
+```
+
+Check `~/.tmux/plugins/tmux/status/<module>.conf` for the full list of overridable options per module.
+
+### Pane border status
+
+```tmux
+set -g @catppuccin_pane_status_enabled "yes"
+set -g @catppuccin_pane_border_status "yes"
+set -g @catppuccin_pane_active_border_style "##{?pane_in_mode,fg=#{@thm_peach},##{?pane_synchronized,fg=#{@thm_rosewater},fg=#{@thm_peach}}}"
+set -g @catppuccin_pane_color "#{@thm_rosewater}"
+```
+
 ## Ghostty window padding
 
 Adding `window-padding-x = 16` / `window-padding-y = 16` in Ghostty config adds visual breathing room around terminal content (similar to omerxx's layout). Do **not** set `window-padding-color` — both `background` and `extend` values create a visible color band that differs from the terminal background.
