@@ -7,7 +7,7 @@ return {
     ui = {
       bullets = vim.NIL, ---@diagnostic disable-line: assign-type-mismatch
       hl_groups = {
-        ObsidianRefText = { fg = "#8BE9FD", underline = true },
+        ObsidianRefText = { fg = "#8aadf4", underline = true },
       },
     },
     workspaces = {
