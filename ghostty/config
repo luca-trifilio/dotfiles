@@ -55,17 +55,11 @@ theme = Catppuccin Macchiato
 font-family = JetBrainsMono Nerd Font Mono
 font-size = 14
 window-padding-x = 32
-window-padding-y = 32
+window-padding-y = 32,0
+
 confirm-close-surface = false
 
 # Abilita caratteri accentati con tastiera americana
 macos-option-as-alt = false
-
-# Ctrl+numero → switch pane tmux (invia prefix \x02 + numero)
-keybind = ctrl+one=text:\x021
-keybind = ctrl+two=text:\x022
-keybind = ctrl+three=text:\x023
-keybind = ctrl+four=text:\x024
-keybind = ctrl+five=text:\x025
 
 keybind = shift+enter=text:\x1b[13;2u
