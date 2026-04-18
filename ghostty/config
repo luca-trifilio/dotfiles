@@ -54,8 +54,8 @@ command = /bin/zsh -c 'tmux new-session -A -s main'
 theme = Catppuccin Macchiato
 font-family = JetBrainsMono Nerd Font Mono
 font-size = 14
-window-padding-x = 16
-window-padding-y = 16
+window-padding-x = 32
+window-padding-y = 32
 confirm-close-surface = false
 
 # Abilita caratteri accentati con tastiera americana
