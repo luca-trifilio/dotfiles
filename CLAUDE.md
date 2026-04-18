@@ -42,6 +42,7 @@ On a fresh machine, bootstrap TPM manually (see below).
 | `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
 | `zshrc` | `~/` | exception: separate stow call |
 | `opencode` | `~/.config/opencode/` | |
+| `starship` | `~/.config/starship/` | `STARSHIP_CONFIG` set in `.zshrc` |
 
 ## Adding a new XDG package
 
