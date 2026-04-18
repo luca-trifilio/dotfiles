@@ -48,7 +48,7 @@
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
 
-command = /bin/zsh -c 'tmux new-session -A -s main'
+command = /bin/zsh -c 'tmux new-session -A -s home'
 
 # theme = dracula
 theme = Catppuccin Macchiato
