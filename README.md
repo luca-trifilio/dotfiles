@@ -12,6 +12,7 @@ dotfiles/
   ghostty/     → ~/.config/ghostty/  (auto-starts tmux)
   tmux/        → ~/.config/tmux/     (plugins at ~/.tmux/plugins/, gitignored here)
   opencode/    → ~/.config/opencode/
+  starship/    → ~/.config/starship/ (STARSHIP_CONFIG set in .zshrc)
   zshrc/       → ~/                  (exception, see below)
 ```
 
@@ -24,7 +25,7 @@ cd ~/Progetti/dotfiles && ./setup.sh
 
 ## zshrc exception
 
-`zshrc/` targets `~` instead of `~/.config/` because `.zshrc` and `.p10k.zsh` live at `~`. `setup.sh` handles this with a separate stow call.
+`zshrc/` targets `~` instead of `~/.config/` because `.zshrc` lives at `~`. `setup.sh` handles this with a separate stow call.
 
 ## Add a new package
 

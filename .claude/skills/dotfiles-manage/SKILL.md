@@ -61,6 +61,7 @@ command = /bin/zsh -c 'tmux new-session -A -s main'
 | `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
 | `zshrc` | `~/` | exception: separate stow call |
 | `opencode` | `~/.config/opencode/` | config: `opencode.json`; plugin dir: `opencode/opencode/` |
+| `starship` | `~/.config/starship/` | `STARSHIP_CONFIG=~/.config/starship/starship.toml` in `.zshrc` |
 
 ## Day-to-Day Operations
 
