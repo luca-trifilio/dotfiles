@@ -1,4 +1,5 @@
 export PATH=$HOME/.local/bin:$HOME/bin:/usr/local/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH="$PATH:$HOME/.lmstudio/bin"
