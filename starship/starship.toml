@@ -24,16 +24,17 @@ symbol = " "
 format = "[$symbol$branch(:$remote_branch)]($style) "
 
 [git_status]
-style = "peach"
-format = '([$all_status$ahead_behind]($style) )'
-modified = "*"
-untracked = "?"
-staged = "+"
-deleted = "✘"
-renamed = "»"
+conflicted = "="
 ahead = "⇡"
 behind = "⇣"
 diverged = "⇕"
+untracked = "?"
+stashed = "$"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+
 
 [palettes.catppuccin_macchiato]
 rosewater = "#f4dbd6"
@@ -46,7 +47,7 @@ peach = "#f5a97f"
 yellow = "#eed49f"
 green = "#a6da95"
 teal = "#8bd5ca"
-sky = "#91d7e3"
+
 sapphire = "#7dc4e4"
 blue = "#8aadf4"
 lavender = "#b7bdf8"

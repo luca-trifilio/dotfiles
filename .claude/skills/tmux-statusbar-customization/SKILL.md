@@ -182,6 +182,54 @@ set -g @catppuccin_pane_active_border_style "##{?pane_in_mode,fg=#{@thm_peach},#
 set -g @catppuccin_pane_color "#{@thm_rosewater}"
 ```
 
+## Nerd font char corruption diagnostic
+
+Editors silently replace Nerd Font glyphs with plain spaces. Symptoms: rounded separators disappear, diff shows lines as changed but they look identical.
+
+Diagnose:
+
+```bash
+grep "left_separator\|right_separator" tmux.conf | cat -v   # shows M-^B style encoding if present
+git show HEAD:tmux/tmux.conf | grep "separator" | xxd       # inspect committed bytes
+```
+
+Key codepoints: `ee82b6` = U+E0B6 (), `ee82b4` = U+E0B4 ()
+
+Restore with Python (Edit/Write tools cannot insert these chars reliably):
+
+```python3
+content = open('tmux/tmux.conf').read()
+content = content.replace('old_left_value', 'new \ue0b6"')
+open('tmux/tmux.conf', 'w').write(content)
+```
+
+## run vs source-file execution order
+
+`source-file` is **synchronous**; `run` commands inside it are **queued async**. Consequence:
+
+```tmux
+source-file catppuccin.conf   # executes now; "run catppuccin.tmux" inside is queued
+source-file pane-borders.conf # executes NOW — before catppuccin.tmux fires!
+run '~/.tmux/plugins/tpm/tpm' # queued after
+```
+
+`pane-borders.conf` color overrides get stomped when catppuccin.tmux runs later. Fix: set pane border colors via `@catppuccin_pane_active_border_style` in catppuccin config so the plugin itself uses the right color — no post-override needed.
+
+## pane-border-status top: half-colored vertical separator
+
+With `pane-border-status top` and exactly **2 horizontal panes**, the vertical separator appears half-colored. With 3+ panes it renders fully. Expected tmux behavior — the top box-drawing junction is styled differently from the `│` below. Not a bug, no fix available.
+
+## Config modularization with source-file
+
+Extract catppuccin settings into a dedicated file:
+
+```tmux
+# tmux.conf — replaces the inline catppuccin block
+source-file ~/.config/tmux/catppuccin.conf
+```
+
+`catppuccin.conf` contains all `@catppuccin_*` options, `run catppuccin.tmux`, and the status line layout. Keeps `tmux.conf` clean and lets the catppuccin block be edited in isolation.
+
 ## Ghostty window padding
 
 Adding `window-padding-x = 16` / `window-padding-y = 16` in Ghostty config adds visual breathing room around terminal content (similar to omerxx's layout). Do **not** set `window-padding-color` — both `background` and `extend` values create a visible color band that differs from the terminal background.

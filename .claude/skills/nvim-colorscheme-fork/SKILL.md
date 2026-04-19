@@ -84,6 +84,20 @@ Use `:Inspect` on the highlighted text to see which highlight groups are active 
 
 **Note:** obsidian.nvim does NOT distinguish existing vs non-existing links (as of v3.x). All wiki links get `ObsidianRefText`. This is planned for v4.0 via LSP semantic highlighting (see issues #249, #309, #792).
 
+## Terminal transparency
+
+To make nvim respect terminal emulator opacity (e.g. Kitty `background_opacity`), the colorscheme must not set a solid `Normal` background. With catppuccin/nvim:
+
+```lua
+-- plugins/colorscheme.lua
+opts = {
+  transparent_background = true,  -- honors terminal opacity
+  ...
+}
+```
+
+Without this, catppuccin hardcodes `Normal.bg` to its palette color, overriding terminal transparency regardless of the emulator's opacity setting.
+
 ## Notes
 
 - Groups added to `groups.lua` are applied at `ColorScheme` load automatically

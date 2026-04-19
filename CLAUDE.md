@@ -38,6 +38,20 @@ On a fresh machine, bootstrap TPM manually (see below).
 | Package | Target | Notes |
 |---|---|---|
 | `nvim` | `~/.config/nvim/` | LazyVim |
+
+## nvim structure
+
+Plugin files use semantic grouping (not one file per plugin):
+- `lua/plugins/ui.lua` — colorscheme, lualine, tmux-navigator
+- `lua/plugins/coding.lua` — gitsigns, language plugins
+- `lua/plugins/notes.lua` — markdown, obsidian, blink.cmp overrides
+- `lua/plugins/snacks.lua` — dashboard, picker, explorer
+
+Assets (logo, etc.) live in `lua/assets/` and are `require()`d in plugin configs.
+
+## Gotchas
+
+- Nerd Font glyphs corrupt when copy-pasted through terminal — use `gh api ... --jq '.content' | base64 -d > file` to preserve bytes
 | `ghostty` | `~/.config/ghostty/` | auto-starts tmux on open |
 | `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
 | `zshrc` | `~/` | exception: separate stow call |

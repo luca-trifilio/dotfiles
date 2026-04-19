@@ -2,6 +2,11 @@ return {
   {
     "folke/snacks.nvim",
     opts = {
+      dashboard = {
+        preset = {
+          header = require("assets.logo"),
+        },
+      },
       picker = {
         sources = {
           explorer = {
