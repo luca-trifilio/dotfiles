@@ -112,6 +112,11 @@ tmux() {
     command tmux "$@"
   fi
 }
+export EDITOR=$(which nvim)
+export VISUAL=$EDITOR
+export SUDO_EDITOR=$EDITOR
+alias vi='nvim'
+alias c='clear'
 alias python=python3
 alias pip=pip3
 

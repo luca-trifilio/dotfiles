@@ -9,6 +9,11 @@ Each app is a package directory. `stow .` symlinks all XDG packages into `~/.con
 ```
 dotfiles/
   nvim/        → ~/.config/nvim/     (LazyVim)
+    lua/plugins/ui.lua       colorscheme, lualine, tmux-navigator
+    lua/plugins/coding.lua   gitsigns, language plugins
+    lua/plugins/notes.lua    markdown, obsidian, blink.cmp
+    lua/plugins/snacks.lua   dashboard, picker, explorer
+    lua/assets/              static assets (logo, etc.)
   ghostty/     → ~/.config/ghostty/  (auto-starts tmux)
   tmux/        → ~/.config/tmux/     (plugins at ~/.tmux/plugins/, gitignored here)
   opencode/    → ~/.config/opencode/
