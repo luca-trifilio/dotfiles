@@ -18,15 +18,22 @@ return {
     opts = {
       render_modes = { "n", "i", "c" },
       heading = {
+        enabled = true,
         border = true,
         border_virtual = true,
-        above = "▄",
-        below = "▀",
-      },
-      code = {
-        border = "thin",
-        above = "▄",
-        below = "▀",
+        border_prefix = false,
+        above = " ",
+        below = " ",
+        backgrounds = {},
+        foregrounds = {
+          "RenderMarkdownH1",
+          "RenderMarkdownH2",
+          "RenderMarkdownH3",
+          "RenderMarkdownH4",
+          "RenderMarkdownH5",
+          "RenderMarkdownH6",
+        },
+        custom = {},
       },
     },
   },
@@ -54,7 +61,9 @@ return {
       },
       frontmatter = {
         enabled = false,
-        func = function() return {} end,
+        func = function()
+          return {}
+        end,
       },
     },
   },
