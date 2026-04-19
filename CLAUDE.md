@@ -12,32 +12,36 @@ dotfiles/ghostty/ → ~/.config/ghostty (symlink)
 dotfiles/tmux/    → ~/.config/tmux    (symlink)
 ```
 
-## zshrc exception
+## Home-target packages
 
-`zshrc/` contains `~`-relative files (`.zshrc`, `.p10k.zsh`) — they must go to `~/`, not `~/.config/`. Two things handle this:
+Some packages target `~/` instead of `~/.config/`. They are excluded from `stow .` via `.stowrc` and handled separately in `setup.sh`.
 
-1. `.stowrc` has `--ignore=^zshrc$` so `stow .` skips it
-2. `setup.sh` runs a separate `stow --target="$HOME" zshrc`
-
-When adding other home-target packages, follow the same pattern.
-
-## tmux plugins
-
-TPM and all plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. `tmux.conf` explicitly sets:
-
-```
-set-environment -g TMUX_PLUGIN_MANAGER_PATH "$HOME/.tmux/plugins/"
-```
-
-This prevents TPM from installing into `~/.config/tmux/plugins/` (which would leak into the repo via the stow symlink). `tmux/plugins/` is also gitignored as a safety net.
-
-On a fresh machine, bootstrap TPM manually (see below).
+| Package | Target | How |
+|---|---|---|
+| `zshrc` | `~/` | `stow --target="$HOME" zshrc` |
+| `claude` | `~/.claude/` | `stow --target="$HOME" claude` |
 
 ## Current packages
 
 | Package | Target | Notes |
 |---|---|---|
 | `nvim` | `~/.config/nvim/` | LazyVim |
+| `ghostty` | `~/.config/ghostty/` | auto-starts tmux on open |
+| `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
+| `zsh` | `~/.config/zsh/` | aliases, exports, tmux fn, zoxide |
+| `opencode` | `~/.config/opencode/` | |
+| `starship` | `~/.config/starship/` | `STARSHIP_CONFIG` set in `.zshrc` |
+| `zshrc` | `~/` | `.zshrc`, `.p10k.zsh` |
+| `claude` | `~/.claude/` | `statusline.sh` |
+
+## zsh config structure
+
+`.zshrc` sources modular files from `~/.config/zsh/` (→ `dotfiles/zsh/`):
+
+- `exports.zsh` — PATH, EDITOR, BUN, LM Studio
+- `aliases.zsh` — shell aliases
+- `tmux.zsh` — tmux wrapper function
+- `zoxide.zsh` — zoxide config + lazy init
 
 ## nvim structure
 
@@ -49,14 +53,15 @@ Plugin files use semantic grouping (not one file per plugin):
 
 Assets (logo, etc.) live in `lua/assets/` and are `require()`d in plugin configs.
 
-## Gotchas
+## tmux plugins
 
-- Nerd Font glyphs corrupt when copy-pasted through terminal — use `gh api ... --jq '.content' | base64 -d > file` to preserve bytes
-| `ghostty` | `~/.config/ghostty/` | auto-starts tmux on open |
-| `tmux` | `~/.config/tmux/` | plugins at `~/.tmux/plugins/` |
-| `zshrc` | `~/` | exception: separate stow call |
-| `opencode` | `~/.config/opencode/` | |
-| `starship` | `~/.config/starship/` | `STARSHIP_CONFIG` set in `.zshrc` |
+TPM and all plugins live at `~/.tmux/plugins/` — **outside** the stow-managed `~/.config/tmux/`. `tmux.conf` explicitly sets:
+
+```
+set-environment -g TMUX_PLUGIN_MANAGER_PATH "$HOME/.tmux/plugins/"
+```
+
+This prevents TPM from installing into `~/.config/tmux/plugins/` (which would leak into the repo via the stow symlink). `tmux/plugins/` is also gitignored as a safety net.
 
 ## Adding a new XDG package
 
@@ -73,8 +78,8 @@ No changes to `.stowrc` or `setup.sh` needed — `stow .` picks it up automatica
 
 ```zsh
 mkdir ~/Progetti/dotfiles/<app>
-mv ~/.<file> ~/Progetti/dotfiles/<app>/
-# Add to .stowrc: --ignore=^<app>$
+# place files inside, mirroring the target structure
+# Add to .stowrc:  --ignore=^<app>$
 # Add to setup.sh: stow --target="$HOME" <app>
 cd ~/Progetti/dotfiles && stow --target="$HOME" <app>
 git add <app> .stowrc setup.sh && git commit -m "add <app>"
@@ -88,11 +93,18 @@ stow -D .            # remove all XDG symlinks
 stow -R .            # restow (remove + re-apply)
 ```
 
+## Gotchas
+
+- Nerd Font glyphs corrupt when copy-pasted through terminal — use `gh api ... --jq '.content' | base64 -d > file` to preserve bytes
+- `printf "%.2f"` uses locale decimal separator — use `LC_ALL=C awk '{printf "%.2f", $1}'` for locale-safe float formatting in shell scripts
+
 ## Fresh machine bootstrap
 
 ```zsh
 git clone https://github.com/luca-trifilio/dotfiles.git ~/Progetti/dotfiles
-cd ~/Progetti/dotfiles && ./setup.sh
+cd ~/Progetti/dotfiles
+./bootstrap.sh   # install prerequisites
+./setup.sh       # stow symlinks
 # Then install TPM for tmux:
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 # Inside tmux: prefix + I to install plugins
