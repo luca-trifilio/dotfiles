@@ -7,6 +7,6 @@ export EDITOR=$(which nvim)
 export VISUAL=$EDITOR
 export SUDO_EDITOR=$EDITOR
 
-export STARSHIP_CONFIG=~/.config/starship/starship.toml
+export XDG_CONFIG_HOME="$HOME/.config"
 
-export K9S_CONFIG_DIR="$HOME/.config/k9s"
+export STARSHIP_CONFIG=~/.config/starship/starship.toml
