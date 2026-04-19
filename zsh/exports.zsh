@@ -8,3 +8,5 @@ export VISUAL=$EDITOR
 export SUDO_EDITOR=$EDITOR
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
+
+export K9S_CONFIG_DIR="$HOME/.config/k9s"
