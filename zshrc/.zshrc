@@ -104,6 +104,14 @@ source $ZSH/oh-my-zsh.sh
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 eval "$(starship init zsh)"
 
+unalias tmux 2>/dev/null
+tmux() {
+  if [[ $# -eq 0 ]]; then
+    command tmux new-session -A -s home
+  else
+    command tmux "$@"
+  fi
+}
 alias python=python3
 alias pip=pip3
 
