@@ -11,3 +11,4 @@ export SUDO_EDITOR=$EDITOR
 export XDG_CONFIG_HOME="$HOME/.config"
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
+
