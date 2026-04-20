@@ -15,5 +15,6 @@ fpath=($HOME/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
 
+source ~/.config/zsh/vimode.zsh
 source ~/.config/zsh/zoxide.zsh
 eval "$(starship init zsh)"
