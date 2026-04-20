@@ -58,10 +58,22 @@ git add <app> .stowrc setup.sh && git commit -m "add <app>"
 `.zshrc` sources modular files from `~/.config/zsh/` (`dotfiles/zsh/`):
 
 - `exports.zsh` — PATH, EDITOR, env vars
+- `history.zsh` — HISTFILE, HISTSIZE, SAVEHIST, setopts
+- `completions.zsh` — zstyle, fzf-tab config, `source <(fzf --zsh)`
 - `aliases.zsh` — shell aliases
 - `tmux.zsh` — tmux wrapper function
-- `zoxide.zsh` — zoxide init
+- `zoxide.zsh` — zoxide init (`--cmd cd` replaces `cd`)
 - `vimode.zsh` — vi keybindings + cursor shape (beam in insert, block in normal)
+
+OMZ plugins: `git kubectl aws fzf-tab zsh-syntax-highlighting zsh-autosuggestions`
+
+Custom plugins (cloned in `~/.oh-my-zsh/custom/plugins/`): `zsh-completions`, `fzf-tab`
+
+**compinit**: handled by OMZ via `ZSH_DISABLE_COMPFIX=true` — do not call manually.
+
+## Atuin
+
+Shell history sync, self-hosted at `atuin-homelab.lucatrifilio.it`. Config at `dotfiles/atuin/config.toml` (XDG, stowed). Replaces `Ctrl+R`. Syncs every 10min triggered by any command.
 
 ## nvim structure
 

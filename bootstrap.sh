@@ -27,7 +27,7 @@ fi
 
 # ── CLI tools ─────────────────────────────────────────────────────────────────
 status "CLI tools (brew)"
-for pkg in git stow neovim tmux starship zoxide; do
+for pkg in git stow neovim tmux starship zoxide atuin; do
   if brew list "$pkg" &>/dev/null; then
     echo "  $pkg — already installed"
   else
@@ -61,7 +61,9 @@ status "OMZ plugins"
 OMZ_PLUGINS="$HOME/.oh-my-zsh/custom/plugins"
 for plugin_repo in \
   "zsh-users/zsh-syntax-highlighting" \
-  "zsh-users/zsh-autosuggestions"; do
+  "zsh-users/zsh-autosuggestions" \
+  "zsh-users/zsh-completions" \
+  "Aloxaf/fzf-tab"; do
   plugin="${plugin_repo##*/}"
   if [ -d "$OMZ_PLUGINS/$plugin" ]; then
     echo "  $plugin — already installed"
