@@ -16,24 +16,17 @@ return {
     ---@module 'render-markdown'
     ---@type render.md.UserConfig
     opts = {
-      render_modes = { "n", "i", "c" },
+      enabled = true,
+      preset = "obsidian",
       heading = {
-        enabled = true,
         border = true,
-        border_virtual = true,
-        border_prefix = false,
-        above = " ",
-        below = " ",
-        backgrounds = {},
-        foregrounds = {
-          "RenderMarkdownH1",
-          "RenderMarkdownH2",
-          "RenderMarkdownH3",
-          "RenderMarkdownH4",
-          "RenderMarkdownH5",
-          "RenderMarkdownH6",
-        },
-        custom = {},
+        position = "inline",
+      },
+      code = {
+        sign = false,
+      },
+      bullet = {
+        left_pad = 2,
       },
     },
   },
@@ -44,10 +37,7 @@ return {
     opts = {
       legacy_commands = false, -- this will be removed in the next major release
       ui = {
-        bullets = vim.NIL, ---@diagnostic disable-line: assign-type-mismatch
-        hl_groups = {
-          ObsidianRefText = { fg = "#8aadf4", underline = true },
-        },
+        enable = false,
       },
       workspaces = {
         {
