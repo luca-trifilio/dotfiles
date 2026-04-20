@@ -1,7 +1,3 @@
 export _ZO_EXCLUDE_DIRS="/tmp:/var:/proc:/sys:/node_modules:/.git:/dist:/build"
 export _ZO_MAXAGE=1000
-zoxide() {
-  unfunction zoxide
-  eval "$(command zoxide init zsh)"
-  zoxide "$@"
-}
+eval "$(zoxide init zsh)"
