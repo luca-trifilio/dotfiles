@@ -16,6 +16,6 @@ source ~/.config/zsh/tmux.zsh
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 source ~/.config/zsh/vimode.zsh
-source ~/.config/zsh/zoxide.zsh
 eval "$(atuin init zsh)"
 eval "$(starship init zsh)"
+source ~/.config/zsh/zoxide.zsh
