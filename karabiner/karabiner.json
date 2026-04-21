@@ -25,10 +25,10 @@
                     "identifiers": {
                         "is_keyboard": true,
                         "is_pointing_device": true,
-                        "product_id": 12870,
-                        "vendor_id": 6645
+                        "vendor_id": 2007
                     },
-                    "ignore": false
+                    "ignore": false,
+                    "ignore_vendor_events": true
                 }
             ],
             "name": "Default profile",
