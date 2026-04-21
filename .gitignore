@@ -3,3 +3,4 @@ tmux/plugins/
 /nvim/lazy-lock.json
 /.claude/settings.local.json
 karabiner/assets/
+karabiner/automatic_backups/
