@@ -11,6 +11,7 @@ source ~/.config/zsh/history.zsh
 source ~/.config/zsh/completions.zsh
 source ~/.config/zsh/aliases.zsh
 source ~/.config/zsh/tmux.zsh
+source ~/.config/zsh/aws.zsh
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
