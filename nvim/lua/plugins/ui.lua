@@ -42,11 +42,41 @@ return {
   },
   {
     "nvim-lualine/lualine.nvim",
-    opts = {
-      sections = {
-        lualine_z = {},
-      },
-    },
+    opts = function(_, opts)
+      local C = require("catppuccin.palettes").get_palette("macchiato")
+      local left_round = vim.fn.nr2char(0xE0B6)
+      local right_round = vim.fn.nr2char(0xE0B4)
+      local mode_colors = {
+        n = C.blue, i = C.green, v = C.mauve, V = C.mauve,
+        ["\22"] = C.mauve, c = C.peach, R = C.red, Rv = C.red,
+        no = C.blue, s = C.peach, S = C.peach, ic = C.green,
+        cv = C.peach, ce = C.peach, r = C.teal, rm = C.teal,
+        ["r?"] = C.teal, ["!"] = C.red, t = C.green,
+      }
+      local function mode_color() return mode_colors[vim.fn.mode()] or C.blue end
+
+      opts.options = vim.tbl_extend("force", opts.options or {}, {
+        theme = "catppuccin-nvim",
+        section_separators = { left = "", right = "" },
+        component_separators = "",
+      })
+      opts.sections = opts.sections or {}
+      opts.sections.lualine_a = { { "mode", separator = { left = left_round }, right_padding = 2 } }
+      opts.sections.lualine_c = { { "filename", path = 0 }, "diagnostics" }
+
+      opts.sections.lualine_z = {
+        {
+          "filetype",
+          colored = false,
+          separator = { right = right_round },
+          left_padding = 2,
+          color = function()
+            return { fg = C.surface0, bg = mode_color() }
+          end,
+        },
+      }
+      return opts
+    end,
   },
   { "nvim-tree/nvim-web-devicons", lazy = true },
   {
