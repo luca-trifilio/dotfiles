@@ -12,6 +12,8 @@ return {
   },
   {
     "MeanderingProgrammer/render-markdown.nvim",
+    lazy = true,
+    ft = "markdown",
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" },
     ---@module 'render-markdown'
     ---@type render.md.UserConfig
@@ -32,7 +34,13 @@ return {
   },
   {
     "obsidian-nvim/obsidian.nvim",
-    version = "*", -- use latest release, remove to use latest commit
+    version = "*",
+    lazy = true,
+    cmd = { "Obsidian" },
+    event = {
+      "BufReadPre " .. vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",
+      "BufNewFile " .. vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",
+    },
     ---@module 'obsidian'
     opts = {
       legacy_commands = false, -- this will be removed in the next major release
