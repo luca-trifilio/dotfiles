@@ -1,4 +1,4 @@
-alias vi='nvim'
+alias n='nvim'
 alias c='clear'
 alias python=python3
 alias pip=pip3
