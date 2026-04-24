@@ -1,0 +1,52 @@
+tap "gromgit/brewtils"
+tap "keidarcy/tap"
+
+# CLI tools
+brew "atuin"
+brew "direnv"
+brew "fd"
+brew "fswatch"
+brew "fzf"
+brew "gh"
+brew "git"
+brew "gnupg"
+brew "jdtls"
+brew "k9s"
+brew "lazydocker"
+brew "lazygit"
+brew "mactop"
+brew "neovim"
+brew "ollama"
+brew "opencode"
+brew "openvpn"
+brew "ripgrep"
+brew "starship"
+brew "stow"
+brew "tmux"
+brew "tree"
+brew "zoxide"
+
+# Dev
+brew "act"
+brew "bitwarden-cli"
+brew "claude-squad"
+brew "go"
+brew "libpq"
+brew "mysql-client"
+brew "uv"
+
+# AI/experimental
+brew "llmfit"
+
+# Third-party taps
+brew "gromgit/brewtils/taproom"
+brew "keidarcy/tap/e1s"
+
+# Casks
+cask "coderabbit"
+cask "font-jetbrains-mono-nerd-font"
+cask "ghostty"
+cask "kitty"
+cask "ngrok"
+cask "notion-calendar"
+cask "notion-mail"
