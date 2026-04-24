@@ -49,8 +49,8 @@ return {
         section_separators = { left = "", right = "" },
         component_separators = "",
         disabled_filetypes = {
-          statusline = {},
-          winbar = { "NvimTree" },
+          statusline = { "snacks_dashboard" },
+          winbar = { "NvimTree", "snacks_dashboard" },
         },
         always_divide_middle = true,
         globalstatus = true,

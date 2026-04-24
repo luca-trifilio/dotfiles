@@ -38,6 +38,16 @@
                     },
                     "ignore": false,
                     "ignore_vendor_events": true
+                },
+                {
+                    "identifiers": {
+                        "is_keyboard": true,
+                        "product_id": 10203,
+                        "vendor_id": 5824
+                    },
+                    "ignore": false,
+                    "ignore_vendor_events": true,
+                    "simple_modifications": []
                 }
             ],
             "name": "Default profile",
