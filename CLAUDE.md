@@ -46,6 +46,10 @@ cd ~/Progetti/dotfiles && stow --target="$HOME" <app>
 git add <app> .stowrc setup.sh && git commit -m "add <app>"
 ```
 
+## AeroSpace + JankyBorders
+
+`borders` is launched by AeroSpace via `after-startup-command` with inline args — no `bordersrc` file. This is intentional: `bordersrc` is only read when borders starts with no args **and** no instance is already running. With AeroSpace managing the lifecycle, inline args are the only reliable way to apply config on every restart.
+
 ## Key gotchas
 
 - **tmux plugins** live at `~/.tmux/plugins/` (outside stow). `tmux.conf` sets `TMUX_PLUGIN_MANAGER_PATH` explicitly to prevent TPM from writing into the stow-managed `~/.config/tmux/`.
