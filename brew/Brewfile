@@ -1,3 +1,4 @@
+tap "FelixKratz/formulae"
 tap "gromgit/brewtils"
 tap "keidarcy/tap"
 
@@ -39,11 +40,12 @@ brew "uv"
 brew "llmfit"
 
 # Third-party taps
+brew "FelixKratz/formulae/borders"
 brew "gromgit/brewtils/taproom"
 brew "keidarcy/tap/e1s"
 
 # Casks
-cask "coderabbit"
+cask "aerospace"
 cask "font-jetbrains-mono-nerd-font"
 cask "ghostty"
 cask "kitty"
