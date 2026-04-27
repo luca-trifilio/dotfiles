@@ -6,3 +6,6 @@
 --ignore=CLAUDE.md
 --ignore=^zshrc$
 --ignore=^claude$
+--ignore=^karabiner$
+--ignore=^brew$
+--ignore=bootstrap.sh
