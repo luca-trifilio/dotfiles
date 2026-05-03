@@ -56,6 +56,11 @@ return {
           path = "~/Documents/Taccuino Cerusico",
         },
       },
+      templates = {
+        folder = "30 - Modelli",
+        date_format = "%Y-%m-%d",
+        time_format = "%H:%M",
+      },
       daily_notes = {
         folder = "20 - Diario",
         date_format = "%Y/%m/%Y-%m-%d",
