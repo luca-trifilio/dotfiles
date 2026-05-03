@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLI Cheatsheet</title>
+  <style>
+    :root {
+      --base:     #24273a;
+      --mantle:   #1e2030;
+      --crust:    #181926;
+      --surface0: #363a4f;
+      --surface1: #494d64;
+      --surface2: #5b6078;
+      --text:     #cad3f5;
+      --subtext0: #a5adcb;
+      --subtext1: #b8c0e0;
+      --mauve:    #c6a0f6;
+      --blue:     #8aadf4;
+      --sapphire: #7dc4e4;
+      --teal:     #8bd5ca;
+      --green:    #a6da95;
+      --yellow:   #eed49f;
+      --peach:    #f5a97f;
+      --red:      #ed8796;
+      --pink:     #f5bde6;
+      --lavender: #b7bdf8;
+      --sky:      #91d7e3;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--base);
+      color: var(--text);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────────────────── */
+    nav {
+      width: 180px;
+      flex-shrink: 0;
+      background: var(--crust);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--surface0);
+      overflow-y: auto;
+    }
+
+    .nav-header {
+      padding: 1.1rem 1rem 0.8rem;
+      font-size: 0.72rem;
+      color: var(--subtext0);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--surface0);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 1rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--subtext1);
+      border-left: 2px solid transparent;
+      transition: background 0.1s, color 0.1s;
+      user-select: none;
+    }
+
+    .nav-item:hover {
+      background: var(--surface0);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: var(--surface0);
+      color: var(--text);
+      border-left-color: var(--dot-color, var(--mauve));
+    }
+
+    .nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--dot-color, var(--surface2));
+    }
+
+    /* ── Main ────────────────────────────────────────────────────────────── */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      padding: 0.75rem 1.5rem;
+      background: var(--mantle);
+      border-bottom: 1px solid var(--surface0);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .page-title {
+      font-size: 1rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .page-sub {
+      font-size: 0.75rem;
+      color: var(--subtext0);
+    }
+
+    #search {
+      margin-left: auto;
+      padding: 0.35rem 0.9rem;
+      background: var(--surface0);
+      border: 1px solid var(--surface1);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+      width: 220px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    #search:focus { border-color: var(--mauve); }
+    #search::placeholder { color: var(--surface2); }
+
+    .search-hint {
+      font-size: 0.7rem;
+      color: var(--surface2);
+    }
+
+    /* ── Content area ────────────────────────────────────────────────────── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    /* page = one tool */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--mantle);
+      border: 1px solid var(--surface0);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .card {
+      border-top: 2px solid var(--page-accent, var(--surface1));
+    }
+
+    .card-header {
+      padding: 0.5rem 0.9rem;
+      background: var(--surface0);
+      font-size: 0.72rem;
+      color: var(--page-accent, var(--subtext0));
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .card-body { padding: 0.25rem 0; }
+
+    .shortcut {
+      display: flex;
+      align-items: center;
+      padding: 0.28rem 0.9rem;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--surface0);
+    }
+
+    .shortcut:last-child { border-bottom: none; }
+    .shortcut.hidden { display: none; }
+
+    .keys {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      min-width: 160px;
+      flex-shrink: 0;
+    }
+
+    kbd {
+      background: var(--surface1);
+      border: 1px solid var(--surface2);
+      border-bottom: 2px solid var(--surface2);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.7rem;
+      font-family: inherit;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    /* modifier keys: Ctrl, Alt, Shift, Cmd, prefix, Space, leader */
+    kbd.kbd-mod {
+      background: rgba(198, 160, 246, 0.12);
+      border-color: rgba(198, 160, 246, 0.35);
+      border-bottom-color: rgba(198, 160, 246, 0.55);
+      color: var(--mauve);
+    }
+
+    /* special keys: Enter, Esc, Tab */
+    kbd.kbd-special {
+      background: rgba(138, 173, 244, 0.12);
+      border-color: rgba(138, 173, 244, 0.35);
+      border-bottom-color: rgba(138, 173, 244, 0.55);
+      color: var(--blue);
+    }
+
+    /* command-style: contains spaces or angle brackets */
+    kbd.kbd-cmd {
+      background: rgba(139, 213, 202, 0.1);
+      border-color: rgba(139, 213, 202, 0.3);
+      border-bottom-color: rgba(139, 213, 202, 0.5);
+      color: var(--teal);
+    }
+
+    .plus {
+      font-size: 0.62rem;
+      color: var(--surface2);
+      margin: 0 1px;
+    }
+
+    .then {
+      font-size: 0.62rem;
+      color: var(--yellow);
+      margin: 0 3px;
+      font-style: italic;
+    }
+
+    .desc {
+      font-size: 0.76rem;
+      color: var(--subtext1);
+      flex: 1;
+    }
+
+    .shortcut:hover {
+      background: var(--surface0);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ──────────────────────────────────────────────────────────────── -->
+<nav id="nav">
+  <div class="nav-header">Cheatsheet</div>
+
+  <div class="nav-item active" data-page="vim"        style="--dot-color:var(--lavender)">
+    <div class="nav-dot"></div>vim / neovim
+  </div>
+  <div class="nav-item" data-page="tmux"       style="--dot-color:var(--blue)">
+    <div class="nav-dot"></div>tmux
+  </div>
+  <div class="nav-item" data-page="fzf"        style="--dot-color:var(--teal)">
+    <div class="nav-dot"></div>fzf
+  </div>
+  <div class="nav-item" data-page="fzf-git"    style="--dot-color:var(--green)">
+    <div class="nav-dot"></div>fzf-git
+  </div>
+  <div class="nav-item" data-page="zoxide"     style="--dot-color:var(--mauve)">
+    <div class="nav-dot"></div>zoxide
+  </div>
+  <div class="nav-item" data-page="atuin"      style="--dot-color:var(--peach)">
+    <div class="nav-dot"></div>atuin
+  </div>
+  <div class="nav-item" data-page="eza"        style="--dot-color:var(--yellow)">
+    <div class="nav-dot"></div>eza
+  </div>
+  <div class="nav-item" data-page="bat-delta"  style="--dot-color:var(--sapphire)">
+    <div class="nav-dot"></div>bat · delta
+  </div>
+  <div class="nav-item" data-page="lazygit"    style="--dot-color:var(--red)">
+    <div class="nav-dot"></div>lazygit
+  </div>
+  <div class="nav-item" data-page="lazydocker" style="--dot-color:var(--pink)">
+    <div class="nav-dot"></div>lazydocker
+  </div>
+  <div class="nav-item" data-page="glove80" style="--dot-color:var(--sky)">
+    <div class="nav-dot"></div>glove80
+  </div>
+</nav>
+
+<!-- ── Main ─────────────────────────────────────────────────────────────────── -->
+<main>
+  <div class="toolbar">
+    <div>
+      <div class="page-title" id="toolbar-title">vim / neovim</div>
+      <div class="page-sub" id="toolbar-sub">LazyVim · leader = Space</div>
+    </div>
+    <span class="search-hint">press / to search</span>
+    <input id="search" type="text" placeholder="filter…" autocomplete="off">
+  </div>
+
+  <div class="content">
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- VIM / NEOVIM                                                        -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page active" id="page-vim" data-accent="var(--lavender)">
+      <div class="columns">
+
+        <div class="card">
+          <div class="card-header">motion</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd></div><span class="desc">left · down · up · right</span></div>
+            <div class="shortcut"><div class="keys"><kbd>w</kbd> <kbd>b</kbd></div><span class="desc">next / prev word</span></div>
+            <div class="shortcut"><div class="keys"><kbd>e</kbd></div><span class="desc">end of word</span></div>
+            <div class="shortcut"><div class="keys"><kbd>0</kbd> <kbd>^</kbd> <kbd>$</kbd></div><span class="desc">line start · non-blank · end</span></div>
+            <div class="shortcut"><div class="keys"><kbd>gg</kbd> <kbd>G</kbd></div><span class="desc">file start / end</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl</kbd><span class="plus">+</span><kbd>d</kbd> <kbd>u</kbd></div><span class="desc">half page down / up</span></div>
+            <div class="shortcut"><div class="keys"><kbd>%</kbd></div><span class="desc">jump to matching bracket</span></div>
+            <div class="shortcut"><div class="keys"><kbd>{</kbd> <kbd>}</kbd></div><span class="desc">prev / next paragraph</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">editing</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>i</kbd> <kbd>a</kbd></div><span class="desc">insert before / after cursor</span></div>
+            <div class="shortcut"><div class="keys"><kbd>I</kbd> <kbd>A</kbd></div><span class="desc">insert at line start / end</span></div>
+            <div class="shortcut"><div class="keys"><kbd>o</kbd> <kbd>O</kbd></div><span class="desc">new line below / above</span></div>
+            <div class="shortcut"><div class="keys"><kbd>x</kbd></div><span class="desc">delete char</span></div>
+            <div class="shortcut"><div class="keys"><kbd>dd</kbd></div><span class="desc">delete line</span></div>
+            <div class="shortcut"><div class="keys"><kbd>yy</kbd></div><span class="desc">yank line</span></div>
+            <div class="shortcut"><div class="keys"><kbd>p</kbd> <kbd>P</kbd></div><span class="desc">paste below / above</span></div>
+            <div class="shortcut"><div class="keys"><kbd>u</kbd> <kbd>Ctrl+r</kbd></div><span class="desc">undo / redo</span></div>
+            <div class="shortcut"><div class="keys"><kbd>.</kbd></div><span class="desc">repeat last change</span></div>
+            <div class="shortcut"><div class="keys"><kbd>ci</kbd><kbd>"</kbd></div><span class="desc">change inside quotes (any obj)</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">visual</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>v</kbd></div><span class="desc">char visual</span></div>
+            <div class="shortcut"><div class="keys"><kbd>V</kbd></div><span class="desc">line visual</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl</kbd><span class="plus">+</span><kbd>v</kbd></div><span class="desc">block visual</span></div>
+            <div class="shortcut"><div class="keys"><kbd>&gt;</kbd> <kbd>&lt;</kbd></div><span class="desc">indent / dedent selection</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">search &amp; replace</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>/pattern</kbd></div><span class="desc">search forward</span></div>
+            <div class="shortcut"><div class="keys"><kbd>n</kbd> <kbd>N</kbd></div><span class="desc">next / prev match</span></div>
+            <div class="shortcut"><div class="keys"><kbd>*</kbd> <kbd>#</kbd></div><span class="desc">search word under cursor fwd / bwd</span></div>
+            <div class="shortcut"><div class="keys"><kbd>:%s/a/b/g</kbd></div><span class="desc">replace all in file</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">windows &amp; buffers</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>|</kbd></div><span class="desc">split vertical</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>-</kbd></div><span class="desc">split horizontal</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+h/j/k/l</kbd></div><span class="desc">navigate windows (vim-tmux-nav)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>bd</kbd></div><span class="desc">delete buffer</span></div>
+            <div class="shortcut"><div class="keys"><kbd>[b</kbd> <kbd>]b</kbd></div><span class="desc">prev / next buffer</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">LazyVim · files &amp; search</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>ff</kbd></div><span class="desc">find files</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>fg</kbd></div><span class="desc">grep (live)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>fb</kbd></div><span class="desc">find buffers</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>fr</kbd></div><span class="desc">recent files</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>e</kbd></div><span class="desc">file explorer (mini.files)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>/</kbd></div><span class="desc">grep in current buffer</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">LazyVim · LSP</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>gd</kbd></div><span class="desc">go to definition</span></div>
+            <div class="shortcut"><div class="keys"><kbd>gr</kbd></div><span class="desc">references</span></div>
+            <div class="shortcut"><div class="keys"><kbd>gI</kbd></div><span class="desc">go to implementation</span></div>
+            <div class="shortcut"><div class="keys"><kbd>K</kbd></div><span class="desc">hover docs</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>ca</kbd></div><span class="desc">code actions</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>cr</kbd></div><span class="desc">rename symbol</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>cf</kbd></div><span class="desc">format file</span></div>
+            <div class="shortcut"><div class="keys"><kbd>[d</kbd> <kbd>]d</kbd></div><span class="desc">prev / next diagnostic</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>cd</kbd></div><span class="desc">line diagnostics</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">LazyVim · git (gitsigns)</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>]h</kbd> <kbd>[h</kbd></div><span class="desc">next / prev hunk</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>ghs</kbd></div><span class="desc">stage hunk</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>ghr</kbd></div><span class="desc">reset hunk</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>ghb</kbd></div><span class="desc">blame line</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>ghd</kbd></div><span class="desc">diff this</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">LazyVim · misc</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>l</kbd></div><span class="desc">open Lazy (plugin manager)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>cm</kbd></div><span class="desc">Mason (LSP installer)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>qq</kbd></div><span class="desc">quit all</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd><span class="plus">+</span><kbd>?</kbd></div><span class="desc">all keymaps (which-key)</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- TMUX                                                                -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-tmux" data-accent="var(--blue)">
+      <div class="columns">
+
+        <div class="card">
+          <div class="card-header">panes · prefix = Ctrl+A</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>|</kbd></div><span class="desc">split vertical (current path)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>-</kbd></div><span class="desc">split horizontal (current path)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+H/J/K/L</kbd></div><span class="desc">navigate panes (vim-tmux-nav)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>H/J/K/L</kbd></div><span class="desc">resize pane</span></div>
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>x</kbd></div><span class="desc">kill pane</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">windows</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>c</kbd></div><span class="desc">new window</span></div>
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>X</kbd></div><span class="desc">kill window</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Cmd+1…9</kbd></div><span class="desc">go to tab (Kitty)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>&lt;</kbd><span class="then">/</span><kbd>&gt;</kbd></div><span class="desc">move window left / right</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">copy mode (vi)</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>Enter</kbd></div><span class="desc">enter copy mode</span></div>
+            <div class="shortcut"><div class="keys"><kbd>v</kbd></div><span class="desc">begin selection</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+v</kbd></div><span class="desc">rectangle toggle</span></div>
+            <div class="shortcut"><div class="keys"><kbd>y</kbd></div><span class="desc">copy to clipboard (pbcopy)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Esc</kbd></div><span class="desc">cancel</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">misc</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>r</kbd></div><span class="desc">reload config</span></div>
+            <div class="shortcut"><div class="keys"><kbd>prefix</kbd><span class="plus">+</span><kbd>I</kbd></div><span class="desc">install plugins (TPM)</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- FZF                                                                 -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-fzf" data-accent="var(--teal)">
+      <div class="columns">
+        <div class="card">
+          <div class="card-header">keybindings</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Ctrl</kbd><span class="plus">+</span><kbd>T</kbd></div><span class="desc">file/dir picker → paste to prompt</span></div>
+            <div class="shortcut"><div class="keys"><kbd>⌥ left</kbd><span class="plus">+</span><kbd>C</kbd></div><span class="desc">cd into directory (eza tree preview)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl</kbd><span class="plus">+</span><kbd>R</kbd></div><span class="desc">shell history (via Atuin)</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">inside fzf</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Tab</kbd></div><span class="desc">multi-select</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Shift+Tab</kbd></div><span class="desc">deselect</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl</kbd><span class="plus">+</span><kbd>/</kbd></div><span class="desc">toggle preview layout</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl</kbd><span class="plus">+</span><kbd>O</kbd></div><span class="desc">open in browser (fzf-git)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- FZF-GIT                                                             -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-fzf-git" data-accent="var(--green)">
+      <div class="columns">
+        <div class="card">
+          <div class="card-header">git objects · must be inside a repo</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>f</kbd></div><span class="desc">files</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>b</kbd></div><span class="desc">branches</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>h</kbd></div><span class="desc">commit hashes</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>s</kbd></div><span class="desc">stashes</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>t</kbd></div><span class="desc">tags</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>r</kbd></div><span class="desc">remotes</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>l</kbd></div><span class="desc">reflogs</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>e</kbd></div><span class="desc">each ref (git for-each-ref)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>w</kbd></div><span class="desc">worktrees</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+G</kbd><span class="then">then</span><kbd>?</kbd></div><span class="desc">show all bindings</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- ZOXIDE                                                              -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-zoxide" data-accent="var(--mauve)">
+      <div class="columns">
+        <div class="card">
+          <div class="card-header">commands · replaces cd</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>cd &lt;partial&gt;</kbd></div><span class="desc">jump to best matching dir</span></div>
+            <div class="shortcut"><div class="keys"><kbd>cd &lt;partial&gt; Tab</kbd></div><span class="desc">fzf picker among matches</span></div>
+            <div class="shortcut"><div class="keys"><kbd>cdi</kbd></div><span class="desc">interactive fzf over all known dirs</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- ATUIN                                                               -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-atuin" data-accent="var(--peach)">
+      <div class="columns">
+        <div class="card">
+          <div class="card-header">history sync · self-hosted</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Ctrl</kbd><span class="plus">+</span><kbd>R</kbd></div><span class="desc">fuzzy search history</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Ctrl+R</kbd><span class="then">then</span><kbd>Ctrl+R</kbd></div><span class="desc">filter to current directory</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Alt</kbd><span class="plus">+</span><kbd>1…9</kbd></div><span class="desc">select result by index</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- EZA                                                                 -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-eza" data-accent="var(--yellow)">
+      <div class="columns">
+        <div class="card">
+          <div class="card-header">aliases</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>ls</kbd></div><span class="desc">list with icons</span></div>
+            <div class="shortcut"><div class="keys"><kbd>ll</kbd></div><span class="desc">long list with git status</span></div>
+            <div class="shortcut"><div class="keys"><kbd>la</kbd></div><span class="desc">long list including hidden files</span></div>
+            <div class="shortcut"><div class="keys"><kbd>lt</kbd></div><span class="desc">tree view</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- BAT · DELTA                                                         -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-bat-delta" data-accent="var(--sapphire)">
+      <div class="columns">
+        <div class="card">
+          <div class="card-header">bat · better cat</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>bat &lt;file&gt;</kbd></div><span class="desc">view with syntax highlighting</span></div>
+            <div class="shortcut"><div class="keys"><kbd>bat --list-themes | fzf</kbd></div><span class="desc">preview available themes</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">delta · auto-applied in git</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>git diff</kbd></div><span class="desc">side-by-side diff with syntax</span></div>
+            <div class="shortcut"><div class="keys"><kbd>git log -p</kbd></div><span class="desc">log with patch via delta</span></div>
+            <div class="shortcut"><div class="keys"><kbd>n</kbd> <kbd>N</kbd></div><span class="desc">next / prev changed file</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- LAZYGIT                                                             -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-lazygit" data-accent="var(--red)">
+      <div class="columns">
+        <div class="card">
+          <div class="card-header">files</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Space</kbd></div><span class="desc">stage / unstage file</span></div>
+            <div class="shortcut"><div class="keys"><kbd>a</kbd></div><span class="desc">stage all</span></div>
+            <div class="shortcut"><div class="keys"><kbd>d</kbd></div><span class="desc">discard changes</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Enter</kbd></div><span class="desc">view file diff</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">commits</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>c</kbd></div><span class="desc">commit</span></div>
+            <div class="shortcut"><div class="keys"><kbd>A</kbd></div><span class="desc">amend last commit</span></div>
+            <div class="shortcut"><div class="keys"><kbd>z</kbd></div><span class="desc">undo last commit</span></div>
+            <div class="shortcut"><div class="keys"><kbd>r</kbd></div><span class="desc">reword commit message</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">remote</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>p</kbd></div><span class="desc">pull</span></div>
+            <div class="shortcut"><div class="keys"><kbd>P</kbd></div><span class="desc">push</span></div>
+            <div class="shortcut"><div class="keys"><kbd>f</kbd></div><span class="desc">fetch</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">navigation</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>1…5</kbd></div><span class="desc">switch panel (files/branches/…)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>?</kbd></div><span class="desc">all keybindings</span></div>
+            <div class="shortcut"><div class="keys"><kbd>q</kbd></div><span class="desc">quit</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- LAZYDOCKER                                                          -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-lazydocker" data-accent="var(--pink)">
+      <div class="columns">
+        <div class="card">
+          <div class="card-header">containers</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>Enter</kbd></div><span class="desc">attach to container</span></div>
+            <div class="shortcut"><div class="keys"><kbd>l</kbd></div><span class="desc">view logs</span></div>
+            <div class="shortcut"><div class="keys"><kbd>r</kbd></div><span class="desc">restart</span></div>
+            <div class="shortcut"><div class="keys"><kbd>s</kbd></div><span class="desc">stop</span></div>
+            <div class="shortcut"><div class="keys"><kbd>d</kbd></div><span class="desc">delete</span></div>
+            <div class="shortcut"><div class="keys"><kbd>e</kbd></div><span class="desc">exec shell inside container</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">navigation</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>[</kbd><span class="then">/</span><kbd>]</kbd></div><span class="desc">switch panel left / right</span></div>
+            <div class="shortcut"><div class="keys"><kbd>?</kbd></div><span class="desc">help</span></div>
+            <div class="shortcut"><div class="keys"><kbd>q</kbd></div><span class="desc">quit</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- GLOVE80 · TailorKey v5.2² Bilateral macOS                          -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-glove80" data-accent="var(--sky)">
+      <style>
+        .g80-badge {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 1.5rem; height: 1.5rem; border-radius: 4px;
+          font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
+          font-family: inherit;
+        }
+        .g80-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.22rem 0; font-size: 0.72rem; }
+        .g80-arrow { color: var(--surface2); font-size: 0.65rem; }
+        .g80-how { color: var(--subtext0); font-size: 0.68rem; }
+        .g80-name { color: var(--text); }
+        .g80-group-label {
+          font-size: 0.6rem; color: var(--subtext0); text-transform: uppercase;
+          letter-spacing: 0.1em; margin: 0.6rem 0 0.2rem; border-bottom: 1px solid var(--surface0);
+          padding-bottom: 0.15rem;
+        }
+        .g80-key {
+          background: var(--surface1); border: 1px solid var(--surface2);
+          border-bottom: 2px solid var(--surface2); border-radius: 4px;
+          padding: 3px 7px; font-size: 0.68rem; color: var(--text);
+          font-family: inherit; text-align: center; min-width: 2rem;
+        }
+        .g80-key-stack {
+          display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        .g80-mod-label {
+          font-size: 0.58rem; color: var(--subtext0); text-align: center;
+        }
+        .g80-thumb-key {
+          border-radius: 4px; border: 1px solid var(--surface2);
+          border-bottom: 2px solid var(--surface2);
+          padding: 4px 6px; font-size: 0.62rem; text-align: center;
+          min-width: 52px; background: var(--surface1); color: var(--text);
+          line-height: 1.3;
+        }
+        .g80-thumb-key .tap { color: var(--text); font-weight: 600; }
+        .g80-thumb-key .hold { color: var(--sky); font-size: 0.58rem; }
+        .g80-thumb-key .hold-y { color: var(--yellow); font-size: 0.58rem; }
+        .g80-thumb-key .hold-m { color: var(--mauve); font-size: 0.58rem; }
+        .g80-thumb-key .hold-t { color: var(--teal); font-size: 0.58rem; }
+        .g80-thumb-cluster {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+        }
+        .g80-combo-row {
+          display: flex; align-items: center; padding: 0.25rem 0.9rem;
+          gap: 0.5rem; border-bottom: 1px solid var(--surface0); font-size: 0.72rem;
+        }
+        .g80-combo-row:last-child { border-bottom: none; }
+        .g80-combo-keys { display: flex; align-items: center; gap: 0.2rem; min-width: 180px; flex-shrink: 0; }
+        .g80-combo-desc { color: var(--subtext1); flex: 1; font-size: 0.72rem; }
+      </style>
+
+      <div class="columns">
+
+        <!-- ── LAYER MAP (full width) ──────────────────────────────────────── -->
+        <div class="card" style="grid-column: 1 / -1">
+          <div class="card-header">layer map · 20 layers · how to activate each</div>
+          <div class="card-body" style="padding: 0.6rem 1rem 0.8rem; display:flex; gap:2rem; flex-wrap:wrap; align-items:flex-start">
+
+            <!-- Base & typing -->
+            <div style="min-width:210px">
+              <div class="g80-group-label" style="margin-top:0">base layers</div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--sky);color:var(--crust)">0</span>
+                <span class="g80-name">HRM_macOS</span>
+                <span class="g80-how">— default</span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--blue);color:var(--crust)">1</span>
+                <span class="g80-name">Typing</span>
+                <span class="g80-how">— Magic → to(1)</span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--blue);color:var(--crust)">2</span>
+                <span class="g80-name">Autoshift</span>
+                <span class="g80-how">— Magic → to(2)</span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--red);color:var(--crust)">11</span>
+                <span class="g80-name">Gaming</span>
+                <span class="g80-how">— combo outer thumbs</span>
+              </div>
+
+              <div class="g80-group-label">bilateral disambiguation</div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--green);color:var(--crust)">3</span>
+                <span class="g80-name">LeftPinky</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto">A</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--green);color:var(--crust)">4</span>
+                <span class="g80-name">LeftRingy</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto">S</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--green);color:var(--crust)">5</span>
+                <span class="g80-name">LeftMiddy</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto">D</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--green);color:var(--crust)">6</span>
+                <span class="g80-name">LeftIndex</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto">F</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--teal);color:var(--crust)">7</span>
+                <span class="g80-name">RightIndex</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto">J</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--teal);color:var(--crust)">8</span>
+                <span class="g80-name">RightMiddy</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto">K</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--teal);color:var(--crust)">9</span>
+                <span class="g80-name">RightRingy</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto">L</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--teal);color:var(--crust)">10</span>
+                <span class="g80-name">RightPinky</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto">;</kbd></span>
+              </div>
+            </div>
+
+            <!-- Functional layers -->
+            <div style="min-width:230px">
+              <div class="g80-group-label" style="margin-top:0">functional layers · thumb access</div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--sapphire);color:var(--crust)">12</span>
+                <span class="g80-name">Cursor</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto;color:var(--sapphire)">Bksp</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--mauve);color:var(--crust)">13</span>
+                <span class="g80-name">Symbol</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto;color:var(--mauve)">Space</kbd></span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--peach);color:var(--crust)">14</span>
+                <span class="g80-name">Mouse</span>
+                <span class="g80-how">— hold <kbd class="g80-key" style="padding:1px 4px;min-width:auto;color:var(--peach)">Enter</kbd></span>
+              </div>
+              <div class="g80-row" style="padding-left:1rem">
+                <span class="g80-badge" style="background:var(--surface1);color:var(--subtext0);border:1px solid var(--surface2)">15</span>
+                <span class="g80-name" style="color:var(--subtext1)">MouseSlow</span>
+                <span class="g80-how">— + Slow modifier</span>
+              </div>
+              <div class="g80-row" style="padding-left:1rem">
+                <span class="g80-badge" style="background:var(--surface1);color:var(--subtext0);border:1px solid var(--surface2)">16</span>
+                <span class="g80-name" style="color:var(--subtext1)">MouseFast</span>
+                <span class="g80-how">— + Fast modifier</span>
+              </div>
+              <div class="g80-row" style="padding-left:1rem">
+                <span class="g80-badge" style="background:var(--surface1);color:var(--subtext0);border:1px solid var(--surface2)">17</span>
+                <span class="g80-name" style="color:var(--subtext1)">MouseWarp</span>
+                <span class="g80-how">— + Warp modifier</span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--yellow);color:var(--crust)">18</span>
+                <span class="g80-name">Lower</span>
+                <span class="g80-how">— dedicated <kbd class="g80-key" style="padding:1px 4px;min-width:auto;color:var(--yellow)">Lower</kbd> key</span>
+              </div>
+              <div class="g80-row">
+                <span class="g80-badge" style="background:var(--lavender);color:var(--crust)">19</span>
+                <span class="g80-name">Magic</span>
+                <span class="g80-how">— dedicated <kbd class="g80-key" style="padding:1px 4px;min-width:auto;color:var(--lavender)">Magic</kbd> key</span>
+              </div>
+
+              <div class="g80-group-label">layer content summary</div>
+              <div style="font-size:0.68rem; color:var(--subtext1); display:flex; flex-direction:column; gap:0.18rem">
+                <div><span style="color:var(--sapphire)">Cursor</span> — arrows, nav, selection, clipboard, find</div>
+                <div><span style="color:var(--mauve)">Symbol</span> — all symbols, brackets, operators</div>
+                <div><span style="color:var(--peach)">Mouse</span> — move, click, scroll (×1/9 / ×3 / ×12)</div>
+                <div><span style="color:var(--yellow)">Lower</span> — F1–F12, numpad, media, arrows</div>
+                <div><span style="color:var(--lavender)">Magic</span> — RGB, Bluetooth, layer switches, reset</div>
+                <div><span style="color:var(--red)">Gaming</span> — plain WASD, no HRM, toggle</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── HOME ROW MODS visual ─────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-header">home row mods · bilateral enforcement</div>
+          <div class="card-body" style="padding: 0.7rem 0.9rem">
+            <div style="font-size:0.62rem; color:var(--subtext0); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.08em">left hand</div>
+            <div style="display:flex; gap:0.35rem; margin-bottom:0.8rem; flex-wrap:wrap">
+              <div class="g80-key-stack"><div class="g80-key">A</div><div class="g80-mod-label" style="color:var(--green)">⌃ Ctrl</div></div>
+              <div class="g80-key-stack"><div class="g80-key">S</div><div class="g80-mod-label" style="color:var(--teal)">⌥ Alt</div></div>
+              <div class="g80-key-stack"><div class="g80-key">D</div><div class="g80-mod-label" style="color:var(--mauve)">⌘ GUI</div></div>
+              <div class="g80-key-stack"><div class="g80-key">F</div><div class="g80-mod-label" style="color:var(--yellow)">⇧ Shift</div></div>
+            </div>
+            <div style="font-size:0.62rem; color:var(--subtext0); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.08em">right hand</div>
+            <div style="display:flex; gap:0.35rem; margin-bottom:0.8rem; flex-wrap:wrap">
+              <div class="g80-key-stack"><div class="g80-key">J</div><div class="g80-mod-label" style="color:var(--yellow)">⇧ Shift</div></div>
+              <div class="g80-key-stack"><div class="g80-key">K</div><div class="g80-mod-label" style="color:var(--mauve)">⌘ GUI</div></div>
+              <div class="g80-key-stack"><div class="g80-key">L</div><div class="g80-mod-label" style="color:var(--teal)">⌥ Alt</div></div>
+              <div class="g80-key-stack"><div class="g80-key">;</div><div class="g80-mod-label" style="color:var(--green)">⌃ Ctrl</div></div>
+            </div>
+            <div style="font-size:0.68rem; color:var(--subtext0); border-top:1px solid var(--surface0); padding-top:0.5rem">
+              Holds only fire when the <em>other</em> hand presses next.<br>
+              Same-hand combo → tap behavior, no accidental mods.
+            </div>
+            <div style="font-size:0.65rem; margin-top:0.4rem; display:flex; flex-direction:column; gap:0.15rem; color:var(--subtext1)">
+              <div>tapping term: <span style="color:var(--green)">A/;</span> 270 ms · <span style="color:var(--teal)">S/L</span> 240 ms · <span style="color:var(--mauve)">D/K</span> 210 ms · <span style="color:var(--yellow)">F/J</span> 180 ms</div>
+              <div>quick-tap: 300 ms · require-prior-idle: 100–150 ms</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── THUMB CLUSTER visual ─────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-header">thumb cluster · tap / hold</div>
+          <div class="card-body" style="padding: 0.7rem 0.9rem">
+            <div style="font-size:0.62rem; color:var(--subtext0); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.08em">left thumb</div>
+            <div class="g80-thumb-cluster" style="margin-bottom:0.8rem">
+              <div class="g80-thumb-key"><div class="tap">Esc</div></div>
+              <div class="g80-thumb-key"><div class="tap">⌘ GUI</div></div>
+              <div class="g80-thumb-key" style="border-color:var(--yellow);"><div class="tap">Lower</div><div class="hold-y">▼ layer 18</div></div>
+              <div class="g80-thumb-key"><div class="tap">⌃ Ctrl</div></div>
+              <div class="g80-thumb-key" style="border-color:var(--green)"><div class="tap">tmux</div><div class="hold" style="color:var(--green)">⌃A prefix</div></div>
+              <div class="g80-thumb-key"><div class="tap">⌘ GUI</div></div>
+            </div>
+            <div style="font-size:0.62rem; color:var(--subtext0); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.08em">right thumb</div>
+            <div class="g80-thumb-cluster" style="margin-bottom:0.8rem">
+              <div class="g80-thumb-key" style="border-color:var(--sapphire)"><div class="tap">⌫ Bksp</div><div class="hold" style="color:var(--sapphire)">▼ Cursor 12</div></div>
+              <div class="g80-thumb-key"><div class="tap">Tab</div></div>
+              <div class="g80-thumb-key"><div class="tap">Del</div></div>
+              <div class="g80-thumb-key"><div class="tap">⇧ Shift</div></div>
+              <div class="g80-thumb-key" style="border-color:var(--peach)"><div class="tap">↵ Enter</div><div class="hold" style="color:var(--peach)">▼ Mouse 14</div></div>
+              <div class="g80-thumb-key" style="border-color:var(--mauve)"><div class="tap">Space</div><div class="hold-m">▼ Symbol 13</div></div>
+            </div>
+            <div style="font-size:0.62rem; color:var(--subtext0); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.08em">right nav cluster</div>
+            <div style="display:flex; gap:4px; flex-wrap:wrap">
+              <div class="g80-thumb-key"><div class="tap">PgUp</div></div>
+              <div class="g80-thumb-key" style="border-color:var(--lavender)"><div class="tap">Magic</div><div class="hold" style="color:var(--lavender)">▼ layer 19</div></div>
+              <div class="g80-thumb-key"><div class="tap">Home</div></div>
+              <div class="g80-thumb-key"><div class="tap">End</div></div>
+              <div class="g80-thumb-key"><div class="tap">←</div></div>
+              <div class="g80-thumb-key"><div class="tap">→</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── COMBOS ───────────────────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-header">combos · simultaneous keys</div>
+          <div class="card-body">
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>F9</kbd><span class="plus">+</span><kbd>F9↓</kbd></div>
+              <span class="g80-combo-desc">F11 (top-right adjacent pair)</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>F10</kbd><span class="plus">+</span><kbd>F10↓</kbd></div>
+              <span class="g80-combo-desc">F12</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>Lower</kbd><span class="plus">+</span><kbd>Esc</kbd></div>
+              <span class="g80-combo-desc">Caps Lock (left hand)</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>⇧</kbd><span class="plus">+</span><kbd>↵ Enter</kbd></div>
+              <span class="g80-combo-desc">Caps Lock (right hand)</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>Tab</kbd><span class="plus">+</span><kbd>Del</kbd></div>
+              <span class="g80-combo-desc">Caps Word (left inner thumbs)</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>↵ Enter</kbd><span class="plus">+</span><kbd>Space</kbd></div>
+              <span class="g80-combo-desc">Caps Word (right inner thumbs)</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>⌃</kbd><span class="plus">+</span><kbd>Lower</kbd></div>
+              <span class="g80-combo-desc">⌃+Tab switcher (hold Ctrl, cycle Tab)</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>⌘</kbd><span class="plus">+</span><kbd>Lower</kbd></div>
+              <span class="g80-combo-desc">⌘+Tab switcher (hold GUI, cycle Tab)</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>⌥</kbd><span class="plus">+</span><kbd>Lower</kbd></div>
+              <span class="g80-combo-desc">⌥+Tab switcher (hold Alt, cycle Tab)</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>⇧</kbd><span class="plus">+</span><kbd>Magic</kbd></div>
+              <span class="g80-combo-desc">Meh — Ctrl+Alt+Shift</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>tmux</kbd><span class="plus">+</span><kbd>Space</kbd></div>
+              <span class="g80-combo-desc">Hyper — Ctrl+Alt+GUI+Shift</span>
+            </div>
+            <div class="g80-combo-row">
+              <div class="g80-combo-keys"><kbd>⌃</kbd><span class="plus">+</span><kbd>tmux</kbd></div>
+              <span class="g80-combo-desc">Toggle Gaming layer</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── CURSOR LAYER ─────────────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-header">cursor layer 12 · hold ⌫ Bksp</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd></div><span class="desc">← ↓ ↑ → arrows</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Home</kbd> <kbd>End</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd></div><span class="desc">page navigation</span></div>
+            <div class="shortcut"><div class="keys"><kbd>⌘A</kbd></div><span class="desc">Select All</span></div>
+            <div class="shortcut"><div class="keys"><kbd>SelectLine</kbd></div><span class="desc">⌘← then ⌘⇧→</span></div>
+            <div class="shortcut"><div class="keys"><kbd>SelectWord</kbd></div><span class="desc">⌥← then ⌥⇧→</span></div>
+            <div class="shortcut"><div class="keys"><kbd>ExtendLine</kbd></div><span class="desc">⌘⇧→ (grow selection)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>ExtendWord</kbd></div><span class="desc">⌥⇧→ (grow selection)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>⌘C</kbd> <kbd>⌘V</kbd> <kbd>⌘X</kbd></div><span class="desc">Copy · Paste · Cut</span></div>
+            <div class="shortcut"><div class="keys"><kbd>⌘Z</kbd> <kbd>⌘⇧Z</kbd></div><span class="desc">Undo · Redo</span></div>
+            <div class="shortcut"><div class="keys"><kbd>⌘F</kbd></div><span class="desc">Find · ⌘G next · ⌘⇧G prev</span></div>
+            <div class="shortcut"><div class="keys"><kbd>⌘L</kbd></div><span class="desc">URL bar · ⌘K search bar</span></div>
+            <div class="shortcut"><div class="keys"><kbd>⌘⇧4</kbd></div><span class="desc">Screenshot (Snip)</span></div>
+          </div>
+        </div>
+
+        <!-- ── SYMBOL LAYER ─────────────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-header">symbol layer 13 · hold Space</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>(</kbd> <kbd>)</kbd></div><span class="desc">parentheses — home row area</span></div>
+            <div class="shortcut"><div class="keys"><kbd>[</kbd> <kbd>]</kbd></div><span class="desc">square brackets</span></div>
+            <div class="shortcut"><div class="keys"><kbd>{</kbd> <kbd>}</kbd></div><span class="desc">curly braces</span></div>
+            <div class="shortcut"><div class="keys"><kbd>&lt;</kbd> <kbd>&gt;</kbd></div><span class="desc">angle brackets</span></div>
+            <div class="shortcut"><div class="keys"><kbd>!</kbd> <kbd>@</kbd> <kbd>#</kbd> <kbd>$</kbd> <kbd>%</kbd></div><span class="desc">row 1 symbols</span></div>
+            <div class="shortcut"><div class="keys"><kbd>^</kbd> <kbd>&amp;</kbd> <kbd>*</kbd></div><span class="desc">caret · ampersand · asterisk</span></div>
+            <div class="shortcut"><div class="keys"><kbd>_</kbd> <kbd>-</kbd> <kbd>=</kbd> <kbd>+</kbd></div><span class="desc">underscore · minus · equal · plus</span></div>
+            <div class="shortcut"><div class="keys"><kbd>|</kbd> <kbd>\</kbd> <kbd>/</kbd> <kbd>?</kbd></div><span class="desc">pipe · backslash · slash · question</span></div>
+            <div class="shortcut"><div class="keys"><kbd>`</kbd> <kbd>~</kbd></div><span class="desc">backtick · tilde</span></div>
+            <div class="shortcut"><div class="keys"><kbd>'</kbd> <kbd>"</kbd></div><span class="desc">single / double quote</span></div>
+            <div class="shortcut"><div class="keys"><kbd>..</kbd></div><span class="desc">dot-dot macro (path shorthand)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>´(acc)</kbd> <kbd>`(acc)</kbd></div><span class="desc">dead acute / grave for accents</span></div>
+          </div>
+        </div>
+
+        <!-- ── MOUSE + AUTOSHIFT ────────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-header">mouse layer 14 · hold ↵ Enter</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd></div><span class="desc">mouse ← ↓ ↑ → (normal speed)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>+ Slow</kbd></div><span class="desc">÷9 precision mode (layer 15)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>+ Fast</kbd></div><span class="desc">×3 fast mode (layer 16)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>+ Warp</kbd></div><span class="desc">×12 warp mode (layer 17)</span></div>
+            <div class="shortcut"><div class="keys"><kbd>LClick</kbd> <kbd>RClick</kbd> <kbd>MClick</kbd></div><span class="desc">mouse buttons</span></div>
+            <div class="shortcut"><div class="keys"><kbd>MB4</kbd> <kbd>MB5</kbd></div><span class="desc">back / forward</span></div>
+            <div class="shortcut"><div class="keys"><kbd>Scroll ←↓↑→</kbd></div><span class="desc">scroll all directions</span></div>
+            <div class="shortcut"><div class="keys"><kbd>⌘C</kbd> <kbd>⌘V</kbd> <kbd>⌘X</kbd></div><span class="desc">copy/paste/cut available here too</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">autoshift · layer 2 · Magic → to(2)</div>
+          <div class="card-body">
+            <div class="shortcut"><div class="keys"><kbd>alpha</kbd> tap</div><span class="desc">lowercase character</span></div>
+            <div class="shortcut"><div class="keys"><kbd>alpha</kbd> hold</div><span class="desc">UPPERCASE — no Shift needed</span></div>
+            <div class="shortcut"><div class="keys"><kbd>1</kbd> hold</div><span class="desc">! · <kbd>2</kbd>→@ · <kbd>3</kbd>→# · …</span></div>
+            <div class="shortcut"><div class="keys"><kbd>[</kbd> hold</div><span class="desc">{ · <kbd>]</kbd>→} · <kbd>-</kbd>→_</span></div>
+            <div class="shortcut"><div class="keys"><kbd>threshold</kbd></div><span class="desc">190 ms tap-preferred hold-tap</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+  const navItems = document.querySelectorAll('.nav-item');
+  const pages    = document.querySelectorAll('.page');
+  const titleEl  = document.getElementById('toolbar-title');
+  const subEl    = document.getElementById('toolbar-sub');
+  const search   = document.getElementById('search');
+
+  // Color kbd elements by type
+  const MODS    = new Set(['ctrl','alt','⌥','shift','cmd','prefix','space','leader','ctrl+a']);
+  const SPECIAL = new Set(['enter','esc','tab','escape']);
+
+  function colorKbds(root) {
+    root.querySelectorAll('kbd').forEach(k => {
+      const t = k.textContent.trim().toLowerCase();
+      if (MODS.has(t) || t.startsWith('ctrl+') || t.startsWith('⌥') || t === '⌥ left')
+        k.classList.add('kbd-mod');
+      else if (SPECIAL.has(t))
+        k.classList.add('kbd-special');
+      else if (t.includes(' ') || t.includes('<') || t.includes('|'))
+        k.classList.add('kbd-cmd');
+    });
+  }
+
+  // Apply accent color to active page
+  function applyAccent(pageEl) {
+    const accent = pageEl.dataset.accent || 'var(--surface1)';
+    pageEl.style.setProperty('--page-accent', accent);
+  }
+
+  // Init: color all kbds upfront
+  document.querySelectorAll('.page').forEach(p => {
+    colorKbds(p);
+    applyAccent(p);
+  });
+
+  const meta = {
+    'vim':        { title: 'vim / neovim',  sub: 'LazyVim · leader = Space' },
+    'tmux':       { title: 'tmux',          sub: 'prefix = Ctrl+A' },
+    'fzf':        { title: 'fzf',           sub: 'fuzzy finder' },
+    'fzf-git':    { title: 'fzf-git',       sub: 'git objects via fzf · must be inside a repo' },
+    'zoxide':     { title: 'zoxide',        sub: 'smart cd · replaces cd' },
+    'atuin':      { title: 'atuin',         sub: 'shell history sync · self-hosted' },
+    'eza':        { title: 'eza',           sub: 'better ls · aliases' },
+    'bat-delta':  { title: 'bat · delta',   sub: 'better cat / git diff' },
+    'lazygit':    { title: 'lazygit',       sub: 'TUI git client' },
+    'lazydocker': { title: 'lazydocker',    sub: 'TUI docker client' },
+    'glove80':    { title: 'glove80',       sub: 'TailorKey v5.2² Bilateral · macOS' },
+  };
+
+  function activate(pageId) {
+    navItems.forEach(n => n.classList.toggle('active', n.dataset.page === pageId));
+    pages.forEach(p => p.classList.toggle('active', p.id === 'page-' + pageId));
+    const m = meta[pageId] || {};
+    titleEl.textContent = m.title || pageId;
+    subEl.textContent   = m.sub   || '';
+    search.value = '';
+    filterShortcuts('');
+  }
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => activate(item.dataset.page));
+  });
+
+  // Search: filter .shortcut rows in the active page
+  function filterShortcuts(q) {
+    const activePage = document.querySelector('.page.active');
+    if (!activePage) return;
+    activePage.querySelectorAll('.shortcut').forEach(row => {
+      row.classList.toggle('hidden', q && !row.textContent.toLowerCase().includes(q));
+    });
+  }
+
+  search.addEventListener('input', () => filterShortcuts(search.value.toLowerCase().trim()));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== search) {
+      e.preventDefault(); search.focus();
+    }
+    if (e.key === 'Escape') {
+      search.value = ''; filterShortcuts(''); search.blur();
+    }
+  });
+</script>
+
+</body>
+</html>
