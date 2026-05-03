@@ -11,6 +11,7 @@ Two packages are excluded from `stow .` and handled separately in `setup.sh`:
 | Package | Target | Command |
 |---|---|---|
 | `zshrc` | `~/` | `stow --target="$HOME" zshrc` |
+| `gitconfig` | `~/` | `stow --target="$HOME" gitconfig` |
 | `claude` | `~/.claude/` | `stow --target="$HOME" claude` |
 
 ## Fresh machine bootstrap
@@ -18,7 +19,7 @@ Two packages are excluded from `stow .` and handled separately in `setup.sh`:
 ```zsh
 git clone https://github.com/luca-trifilio/dotfiles.git ~/Progetti/dotfiles
 cd ~/Progetti/dotfiles
-./bootstrap.sh   # Homebrew, CLI tools, Oh My Zsh, OMZ plugins, Bun, TPM
+./bootstrap.sh   # Homebrew, CLI tools, Oh My Zsh, OMZ plugins, fzf-git, Bun, TPM
 ./setup.sh       # stow all symlinks
 # Inside tmux: prefix + I to install plugins via TPM
 ```
@@ -59,11 +60,12 @@ git add <app> .stowrc setup.sh && git commit -m "add <app>"
 
 - `exports.zsh` — PATH, EDITOR, env vars
 - `history.zsh` — HISTFILE, HISTSIZE, SAVEHIST, setopts
-- `completions.zsh` — zstyle, fzf-tab config, `source <(fzf --zsh)`
+- `completions.zsh` — zstyle, fzf-tab config
 - `aliases.zsh` — shell aliases
 - `tmux.zsh` — tmux wrapper function
 - `zoxide.zsh` — zoxide init (`--cmd cd` replaces `cd`)
-- `vimode.zsh` — vi keybindings + cursor shape (beam in insert, block in normal)
+- `fzf.zsh` — fzf init, fd integration, bat/eza previews, fzf-git, Catppuccin theme
+- `vimode.zsh` — vi keybindings + cursor shape; unbinds `^G` for fzf-git chords
 
 OMZ plugins: `git kubectl aws fzf-tab zsh-syntax-highlighting zsh-autosuggestions`
 
