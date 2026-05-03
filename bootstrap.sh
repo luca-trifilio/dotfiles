@@ -82,6 +82,15 @@ else
   run curl -fsSL https://bun.sh/install | bash
 fi
 
+# ── fzf-git ───────────────────────────────────────────────────────────────────
+status "fzf-git"
+if [ -d "$HOME/fzf-git.sh" ]; then
+  echo "  already installed"
+else
+  echo "  will clone junegunn/fzf-git.sh"
+  run git clone https://github.com/junegunn/fzf-git.sh.git "$HOME/fzf-git.sh"
+fi
+
 # ── TPM ───────────────────────────────────────────────────────────────────────
 status "TPM (tmux plugin manager)"
 if [ -d "$HOME/.tmux/plugins/tpm" ]; then

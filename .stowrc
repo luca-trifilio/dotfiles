@@ -5,6 +5,7 @@
 --ignore=README.md
 --ignore=CLAUDE.md
 --ignore=^zshrc$
+--ignore=^gitconfig$
 --ignore=^claude$
 --ignore=^\.claude$
 --ignore=^karabiner$
