@@ -53,6 +53,7 @@ brew "gromgit/brewtils/taproom"
 brew "keidarcy/tap/e1s"
 
 # Casks
+cask "espanso"
 cask "font-jetbrains-mono-nerd-font"
 cask "ghostty"
 cask "kitty"
