@@ -11,6 +11,19 @@ return {
     },
   },
   {
+    "preservim/vim-pencil",
+    ft = "markdown",
+    config = function()
+      vim.g["pencil#wrapModeDefault"] = "soft"
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "markdown",
+        callback = function()
+          vim.fn["pencil#init"]()
+        end,
+      })
+    end,
+  },
+  {
     "MeanderingProgrammer/render-markdown.nvim",
     lazy = true,
     ft = "markdown",
@@ -40,6 +53,15 @@ return {
     version = "*",
     lazy = true,
     cmd = { "Obsidian" },
+    init = function()
+      vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
+        pattern = vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",
+        callback = function()
+          vim.opt_local.spell = true
+          vim.opt_local.spelllang = "it,en"
+        end,
+      })
+    end,
     event = {
       "BufReadPre " .. vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",
       "BufNewFile " .. vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",

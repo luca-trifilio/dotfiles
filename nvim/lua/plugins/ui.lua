@@ -102,6 +102,21 @@ return {
   },
   { "nvim-tree/nvim-web-devicons", lazy = true },
   {
+    "folke/twilight.nvim",
+    opts = { context = 10 },
+  },
+  {
+    "folke/zen-mode.nvim",
+    keys = { { "<leader>z", "<cmd>ZenMode<cr>", desc = "Zen Mode" } },
+    opts = {
+      window = { width = 90 },
+      plugins = {
+        twilight = { enabled = true },
+        tmux = { enabled = true },
+      },
+    },
+  },
+  {
     "christoomey/vim-tmux-navigator",
     cmd = {
       "TmuxNavigateLeft",
