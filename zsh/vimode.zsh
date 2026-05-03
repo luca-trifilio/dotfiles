@@ -11,5 +11,9 @@ function zle-keymap-select zle-line-init {
 zle -N zle-keymap-select
 zle -N zle-line-init
 
+# Free ^G for fzf-git chords
+bindkey -M viins -r '^G'
+bindkey -M emacs -r '^G'
+
 # Restore beam cursor when shell exits or runs a command
 preexec() { print -n '\e[5 q'; }

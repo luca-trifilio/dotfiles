@@ -20,3 +20,4 @@ source ~/.config/zsh/vimode.zsh
 eval "$(atuin init zsh)"
 eval "$(starship init zsh)"
 source ~/.config/zsh/zoxide.zsh
+source ~/.config/zsh/fzf.zsh
