@@ -23,6 +23,9 @@ return {
       heading = {
         border = true,
         position = "inline",
+        backgrounds = {},
+        above = " ",
+        below = " ",
       },
       code = {
         sign = false,
