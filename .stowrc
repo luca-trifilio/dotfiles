@@ -11,3 +11,4 @@
 --ignore=^karabiner$
 --ignore=^brew$
 --ignore=bootstrap.sh
+--ignore=cheatsheet.html
