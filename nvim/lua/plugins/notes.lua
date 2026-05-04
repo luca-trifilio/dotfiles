@@ -54,6 +54,7 @@ return {
     lazy = true,
     cmd = { "Obsidian" },
     init = function()
+      require("which-key").add({ { "<leader>o", group = "obsidian", icon = "󰇈" } })
       vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
         pattern = vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",
         callback = function()
@@ -62,6 +63,14 @@ return {
         end,
       })
     end,
+    keys = {
+      { "<leader>od", "<cmd>Obsidian today<cr>", desc = "today" },
+      { "<leader>og", "<cmd>Obsidian dailies<cr>", desc = "dailies" },
+      { "<leader>oo", "<cmd>Obsidian quick_switch<cr>", desc = "quick switch" },
+      { "<leader>on", "<cmd>Obsidian new<cr>", desc = "new note" },
+      { "<leader>os", "<cmd>Obsidian search<cr>", desc = "search" },
+      { "<leader>ot", "<cmd>Obsidian tags<cr>", desc = "tags" },
+    },
     event = {
       "BufReadPre " .. vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",
       "BufNewFile " .. vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",

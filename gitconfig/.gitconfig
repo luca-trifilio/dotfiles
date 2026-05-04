@@ -1,7 +1,7 @@
 [user]
-	email = luca.trifilio@satispay.com
+	email = luca.trifilio@gmail.com
 	name = luca.trifilio
-	signingkey = /Users/luca.trifilio/.ssh/id_ed25519.pub
+	signingkey = ~/.ssh/id_ed25519.pub
 [commit]
 	gpgsign = true
 [gpg]
@@ -36,3 +36,7 @@
 
 [includeIf "gitdir:~/Progetti/dotfiles/"]
 	path = ~/.gitconfig-personal
+[include]
+	path = ~/.gitconfig-local
+[credential]
+	helper = osxkeychain
