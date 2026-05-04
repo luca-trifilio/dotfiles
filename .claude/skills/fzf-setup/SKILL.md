@@ -67,3 +67,16 @@ Prefer config file over `BAT_THEME` env var — cleaner and consistent with XDG 
 - `Ctrl+G` then `?` — show all bindings
 
 Must be inside a git repo for bindings to show results.
+
+## FZF_GIT_PAGER (delta preview)
+
+fzf-git usa `FZF_GIT_PAGER` per le preview dei diff. Senza override, delta eredita `side-by-side = true` dal gitconfig — troppo largo per il pannello preview.
+
+In `zsh/fzf.zsh`:
+```zsh
+export FZF_GIT_PAGER="delta --no-gitconfig --line-numbers --dark --syntax-theme 'Catppuccin Macchiato'"
+```
+
+- `--no-gitconfig` azzera side-by-side e tutte le opzioni gitconfig
+- `--syntax-theme` va ripassato esplicitamente perché `--no-gitconfig` bypassa il feature block
+- Non esiste `--no-side-by-side` né `--side-by-side=false`
