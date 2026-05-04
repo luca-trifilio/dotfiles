@@ -6,7 +6,7 @@ Personal dotfiles at `~/Progetti/dotfiles`, managed with **GNU Stow**.
 
 `.stowrc` sets `--target=~/.config`. Running `stow .` symlinks every top-level directory into `~/.config/` automatically. No changes to `.stowrc` or `setup.sh` needed when adding XDG packages.
 
-Two packages are excluded from `stow .` and handled separately in `setup.sh`:
+Three packages are excluded from `stow .` and handled separately in `setup.sh`:
 
 | Package | Target | Command |
 |---|---|---|
@@ -20,13 +20,14 @@ Two packages are excluded from `stow .` and handled separately in `setup.sh`:
 git clone https://github.com/luca-trifilio/dotfiles.git ~/Progetti/dotfiles
 cd ~/Progetti/dotfiles
 ./bootstrap.sh   # Homebrew, CLI tools, Oh My Zsh, OMZ plugins, fzf-git, Bun, TPM
-./setup.sh       # stow all symlinks
+./setup.sh       # brew bundle, stow all symlinks, yazi flavors (ya pkg install)
 # Inside tmux: prefix + I to install plugins via TPM
 ```
 
 Manual steps bootstrap.sh can't automate:
 - Nerd Font — install from [nerdfonts.com](https://www.nerdfonts.com)
 - Karabiner-Elements — grant Input Monitoring + Accessibility permissions, enable keyboard in Devices tab
+- Atuin sync — `atuin login -u <user> -p <pass> -s https://atuin-homelab.lucatrifilio.it && atuin sync`
 
 ## Adding a new XDG package
 
@@ -53,6 +54,8 @@ git add <app> .stowrc setup.sh && git commit -m "add <app>"
 - **Catppuccin tmux**: if the theme isn't applied, check that `~/.tmux/plugins/tmux/` is the catppuccin repo (not Dracula or another leftover). Remove and reinstall with `prefix + I`.
 - **Nerd Font glyphs** corrupt when copy-pasted through terminal — use `gh api ... --jq '.content' | base64 -d > file` to preserve bytes.
 - **Float formatting** in shell: `printf "%.2f"` uses locale decimal separator — use `LC_ALL=C awk '{printf "%.2f", $1}'` instead.
+- **delta Catppuccin theme**: lives in `git/catppuccin.gitconfig` (XDG, stowed to `~/.config/git/`), included via `[include] path = ~/.config/git/catppuccin.gitconfig` in `.gitconfig`. Do not move it to the `gitconfig/` package.
+- **stow --adopt**: sovrascrive i file nel repo con quelli esistenti sulla macchina — usare solo per adottare file già presenti in `~/` o `~/.config/`, non per routine restow.
 
 ## zsh config structure
 
