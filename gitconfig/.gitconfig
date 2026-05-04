@@ -16,7 +16,7 @@
 [merge]
 	conflictstyle = diff3
 [diff]
-	colorMoved = default
+	colorMoved = plain
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path =
@@ -33,5 +33,3 @@
 	helper = !/opt/homebrew/bin/gh auth git-credential
 [init]
 	defaultBranch = main
-[coderabbit]
-	machineId = cli/4bb7eba383874d8d8e218159926686d6
