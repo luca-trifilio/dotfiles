@@ -103,14 +103,24 @@ return {
   { "nvim-tree/nvim-web-devicons", lazy = true },
   {
     "folke/twilight.nvim",
-    opts = { context = 10 },
+    opts = { context = 3 },
   },
   {
     "folke/zen-mode.nvim",
     keys = { { "<leader>z", "<cmd>ZenMode<cr>", desc = "Zen Mode" } },
     opts = {
-      window = { width = 90 },
+      window = {
+        width = 90,
+        options = {
+          number = false,
+          relativenumber = false,
+        },
+      },
       plugins = {
+        options = {
+          enabled = true,
+          laststatus = 0,
+        },
         twilight = { enabled = true },
         tmux = { enabled = true },
       },
