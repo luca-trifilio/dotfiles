@@ -1,6 +1,6 @@
 ---
 name: gitconfig-multi-machine
-description: Use when user needs to manage gitconfig across multiple machines (work vs personal), handle machine-specific git settings, or set up local git overrides without polluting shared dotfiles.
+description: This skill should be used when the user asks to "set up work email in git", "different git email per machine", "gitconfig work vs personal", "local git override", or needs to manage machine-specific git identity without polluting shared dotfiles.
 ---
 
 ## Pattern: base config personal + local override per machine
