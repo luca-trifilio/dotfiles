@@ -12,3 +12,4 @@ export XDG_CONFIG_HOME="$HOME/.config"
 
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 
+export _ZO_DOCTOR=0
