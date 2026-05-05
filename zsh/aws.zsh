@@ -16,6 +16,7 @@ function e1s() {
   local profile
   profile=$(grep '^\[profile' ~/.aws/config | sed 's/\[profile //;s/\]//' | fzf --prompt="AWS profile for e1s: " --height=40%)
   [[ -z "$profile" ]] && return 1
+  aws sso login --profile "$profile"
   command e1s --profile "$profile" "$@"
 }
 
