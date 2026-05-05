@@ -82,13 +82,14 @@ else
   run curl -fsSL https://bun.sh/install | bash
 fi
 
-# ── fzf-git ───────────────────────────────────────────────────────────────────
+# ── fzf-git (git submodule) ───────────────────────────────────────────────────
 status "fzf-git"
-if [ -d "$HOME/fzf-git.sh" ]; then
-  echo "  already installed"
+DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$DOTFILES_DIR/fzf-git.sh/fzf-git.sh" ]; then
+  echo "  already initialized"
 else
-  echo "  will clone junegunn/fzf-git.sh"
-  run git clone https://github.com/junegunn/fzf-git.sh.git "$HOME/fzf-git.sh"
+  echo "  will init submodule"
+  run git -C "$DOTFILES_DIR" submodule update --init fzf-git.sh
 fi
 
 # ── TPM ───────────────────────────────────────────────────────────────────────
