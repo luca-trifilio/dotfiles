@@ -1,5 +1,5 @@
 eval "$(fzf --zsh)"
-[ -f "$HOME/fzf-git.sh/fzf-git.sh" ] && source "$HOME/fzf-git.sh/fzf-git.sh"
+[ -f "$HOME/.config/fzf-git.sh/fzf-git.sh" ] && source "$HOME/.config/fzf-git.sh/fzf-git.sh"
 
 # Catppuccin Macchiato
 fg="#cad3f5"
