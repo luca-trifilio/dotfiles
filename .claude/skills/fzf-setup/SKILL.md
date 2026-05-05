@@ -1,6 +1,6 @@
 ---
 name: fzf-setup
-description: Use when configuring fzf in dotfiles — setting up fd integration, bat/eza previews, fzf-git, Catppuccin Macchiato theme, and fixing vi mode keybinding conflicts.
+description: This skill should be used when the user asks to "configure fzf", "set up fzf-git", "fix fzf keybindings", "add fzf previews", or needs to set up fd integration, bat/eza previews, fzf-git submodule, Catppuccin theme, or fix vi mode chord conflicts.
 ---
 
 # fzf Setup in Dotfiles
@@ -8,12 +8,13 @@ description: Use when configuring fzf in dotfiles — setting up fd integration,
 ## File structure
 
 - `zsh/fzf.zsh` — all fzf config, sourced last in `.zshrc`
-- `bootstrap.sh` — clone fzf-git.sh to `~/fzf-git.sh/`
+- `fzf-git.sh/` — git submodule (junegunn/fzf-git.sh), stowed to `~/.config/fzf-git.sh/`
+- `bootstrap.sh` — initializes submodule if not already checked out
 
 ## fzf.zsh structure
 
 1. `eval "$(fzf --zsh)"` — init
-2. `[ -f "$HOME/fzf-git.sh/fzf-git.sh" ] && source ...` — fzf-git
+2. `[ -f "$HOME/.config/fzf-git.sh/fzf-git.sh" ] && source ...` — fzf-git
 3. Catppuccin Macchiato color vars → `FZF_DEFAULT_OPTS`
 4. fd-based commands (`FZF_DEFAULT_COMMAND`, `FZF_CTRL_T_COMMAND`, `FZF_ALT_C_COMMAND`)
 5. `_fzf_compgen_path` / `_fzf_compgen_dir` using fd
@@ -31,20 +32,24 @@ bindkey -M emacs -r '^G'
 ```
 
 ### fzf-git bootstrap
-Add to `bootstrap.sh` (same pattern as OMZ plugins):
+fzf-git is a **git submodule** at `dotfiles/fzf-git.sh/`, stowed via `stow .` to `~/.config/fzf-git.sh/`.
+
+`bootstrap.sh` initializes the submodule if empty:
 ```bash
 status "fzf-git"
-if [ -d "$HOME/fzf-git.sh" ]; then
+if [ -f "$DOTFILES_DIR/fzf-git.sh/fzf-git.sh" ]; then
   echo "  already installed"
 else
-  run git clone https://github.com/junegunn/fzf-git.sh.git "$HOME/fzf-git.sh"
+  run git -C "$DOTFILES_DIR" submodule update --init fzf-git.sh
 fi
 ```
 
 Source in `fzf.zsh` with guard:
 ```zsh
-[ -f "$HOME/fzf-git.sh/fzf-git.sh" ] && source "$HOME/fzf-git.sh/fzf-git.sh"
+[ -f "$HOME/.config/fzf-git.sh/fzf-git.sh" ] && source "$HOME/.config/fzf-git.sh/fzf-git.sh"
 ```
+
+On a fresh machine: `git clone --recurse-submodules` populates the submodule; `stow .` creates the symlink.
 
 ### Kitty Option key
 Use `macos_option_as_alt left` (not `yes`) — left Option sends Alt for fzf bindings, right Option preserves macOS accents (ç, è, etc.).
@@ -70,13 +75,13 @@ Must be inside a git repo for bindings to show results.
 
 ## FZF_GIT_PAGER (delta preview)
 
-fzf-git usa `FZF_GIT_PAGER` per le preview dei diff. Senza override, delta eredita `side-by-side = true` dal gitconfig — troppo largo per il pannello preview.
+fzf-git uses `FZF_GIT_PAGER` for diff previews. Without an override, delta inherits `side-by-side = true` from gitconfig — too wide for the preview panel.
 
 In `zsh/fzf.zsh`:
 ```zsh
 export FZF_GIT_PAGER="delta --no-gitconfig --line-numbers --dark --syntax-theme 'Catppuccin Macchiato'"
 ```
 
-- `--no-gitconfig` azzera side-by-side e tutte le opzioni gitconfig
-- `--syntax-theme` va ripassato esplicitamente perché `--no-gitconfig` bypassa il feature block
-- Non esiste `--no-side-by-side` né `--side-by-side=false`
+- `--no-gitconfig` disables side-by-side and all gitconfig options
+- `--syntax-theme` must be re-passed explicitly because `--no-gitconfig` bypasses the feature block
+- There is no `--no-side-by-side` or `--side-by-side=false` flag

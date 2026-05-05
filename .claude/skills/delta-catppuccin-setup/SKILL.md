@@ -1,29 +1,29 @@
 ---
 name: delta-catppuccin-setup
-description: Use when configuring delta with Catppuccin Macchiato theme in dotfiles, or when adding/updating the catppuccin.gitconfig include.
+description: This skill should be used when the user asks to "configure delta theme", "add catppuccin to delta", "set up delta colors", "update catppuccin.gitconfig", or needs to install or update the Catppuccin Macchiato theme for git-delta.
 ---
 
 # Delta Catppuccin Setup
 
 ## File structure
 
-- `git/catppuccin.gitconfig` — stowato in `~/.config/git/catppuccin.gitconfig` via `stow .`
-- `gitconfig/.gitconfig` — contiene `[include]` e `[delta] features`
+- `git/catppuccin.gitconfig` — stowed to `~/.config/git/catppuccin.gitconfig` via `stow .`
+- `gitconfig/.gitconfig` — contains `[include]` and `[delta] features`
 
-## Installazione
+## Installation
 
-1. Scaricare il file ufficiale catppuccin/delta:
+1. Download the official catppuccin/delta file:
 ```bash
 gh api repos/catppuccin/delta/contents/catppuccin.gitconfig --jq '.content' | base64 -d > dotfiles/git/catppuccin.gitconfig
 ```
 
-2. Stowarlo tramite package XDG (`stow .` copre già la dir `git/`):
+2. Stow via XDG package (`stow .` already covers the `git/` dir):
 ```bash
 stow .
 # → ~/.config/git/catppuccin.gitconfig
 ```
 
-3. Nel `gitconfig/.gitconfig`:
+3. In `gitconfig/.gitconfig`:
 ```gitconfig
 [include]
     path = ~/.config/git/catppuccin.gitconfig
@@ -32,24 +32,24 @@ stow .
     features = catppuccin-macchiato
 ```
 
-## Prerequisiti
+## Prerequisites
 
-- `git-delta` e `bat` nel `Brewfile` (già presenti)
-- Tema bat "Catppuccin Macchiato" in `bat/config` (prerequisito ufficiale catppuccin/delta)
+- `git-delta` and `bat` in `Brewfile` (already present)
+- bat theme "Catppuccin Macchiato" in `bat/config` (official catppuccin/delta requirement)
 
-## Flag delta da ricordare
+## Delta flags to remember
 
-- **Non esiste `--no-side-by-side`** — il side-by-side si disabilita non passando `-s`/`--side-by-side`
-- **Non esiste `--side-by-side=false`** — sintassi non supportata
-- `--no-gitconfig` — azzera tutto il gitconfig (utile per override in contesti specifici)
-- `--syntax-theme` non serve se si usa il metodo `features` (è già incluso nel feature block)
+- **No `--no-side-by-side`** — disable side-by-side by not passing `-s`/`--side-by-side`
+- **No `--side-by-side=false`** — syntax not supported
+- `--no-gitconfig` — resets all gitconfig (useful for context-specific overrides)
+- `--syntax-theme` not needed when using the `features` method (already included in the feature block)
 
 ## FZF_GIT_PAGER
 
-Per le preview di fzf-git (pannello troppo stretto per side-by-side), in `zsh/fzf.zsh`:
+For fzf-git diff previews (panel too narrow for side-by-side), in `zsh/fzf.zsh`:
 ```zsh
 export FZF_GIT_PAGER="delta --no-gitconfig --line-numbers --dark --syntax-theme 'Catppuccin Macchiato'"
 ```
 
-Perché `--no-gitconfig`: azzera side-by-side che altrimenti verrebbe letto dal gitconfig.
-Perché `--syntax-theme` esplicito: con `--no-gitconfig` il feature block non viene caricato.
+- `--no-gitconfig` disables side-by-side that would otherwise be read from gitconfig
+- Explicit `--syntax-theme` required: `--no-gitconfig` bypasses the feature block

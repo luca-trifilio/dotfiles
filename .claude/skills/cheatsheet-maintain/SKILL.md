@@ -1,6 +1,6 @@
 ---
 name: cheatsheet-maintain
-description: Use when the user asks to add, update, or extend the CLI cheatsheet at dotfiles/cheatsheet.html. Trigger phrases: "aggiungi al cheatsheet", "aggiorna il cheatsheet", "add to cheatsheet", "update cheatsheet", "new tool shortcut".
+description: This skill should be used when the user asks to "add to cheatsheet", "update cheatsheet", "add a shortcut", "new tool shortcut", or wants to extend the CLI cheatsheet at dotfiles/cheatsheet.html.
 ---
 
 # Cheatsheet Maintenance
