@@ -18,7 +18,6 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function(ev)
     local ok, err = pcall(vim.treesitter.language.add, "bru", {
       path = parser_path,
-      symbol_name = "tree_sitter_bru",
     })
     if not ok then
       vim.notify("[bru] parser not loaded: " .. err, vim.log.levels.WARN)
