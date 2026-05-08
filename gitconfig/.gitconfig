@@ -1,6 +1,6 @@
 [user]
-	email = luca.trifilio@satispay.com
-	name = luca.trifilio
+	email = luca.trifilio@gmail.com
+	name = Luca Trifilio
 	signingkey = ~/.ssh/id_ed25519.pub
 [commit]
 	gpgsign = true
@@ -9,10 +9,10 @@
 [fetch]
 	prune = true
 [credential "https://github.com"]
-	helper = 
+	helper =
 	helper = !/opt/homebrew/bin/gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
+	helper =
 	helper = !/opt/homebrew/bin/gh auth git-credential
 [init]
 	defaultBranch = main
@@ -35,8 +35,6 @@
 	colorMoved = default
 
 [includeIf "gitdir:~/Progetti/dotfiles/"]
-	path = ~/.gitconfig-personal
-[includeIf "gitdir:~/Progetti/brio/"]
 	path = ~/.gitconfig-personal
 [include]
 	path = ~/.gitconfig-local
