@@ -1,5 +1,5 @@
 [user]
-	email = luca.trifilio@gmail.com
+	email = luca.trifilio@satispay.com
 	name = luca.trifilio
 	signingkey = ~/.ssh/id_ed25519.pub
 [commit]
@@ -35,6 +35,8 @@
 	colorMoved = default
 
 [includeIf "gitdir:~/Progetti/dotfiles/"]
+	path = ~/.gitconfig-personal
+[includeIf "gitdir:~/Progetti/brio/"]
 	path = ~/.gitconfig-personal
 [include]
 	path = ~/.gitconfig-local
