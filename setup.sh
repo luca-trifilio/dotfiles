@@ -20,6 +20,7 @@ if [ -d "$VAULT" ]; then
   ln -sf "$VAULT/dotfiles - fzf.md"         "$DOCS/fzf.md"
   ln -sf "$VAULT/dotfiles - git.md"         "$DOCS/git.md"
   ln -sf "$VAULT/dotfiles - nvim.md"        "$DOCS/nvim.md"
+  ln -sf "$VAULT/dotfiles - sketchybar.md"  "$DOCS/sketchybar.md"
   ln -sf "$VAULT/dotfiles - tmux.md"        "$DOCS/tmux.md"
   ln -sf "$VAULT/dotfiles - yazi.md"        "$DOCS/yazi.md"
   ln -sf "$VAULT/dotfiles - zsh.md"         "$DOCS/zsh.md"
