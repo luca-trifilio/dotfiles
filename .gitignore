@@ -5,3 +5,4 @@ tmux/plugins/
 /.claude/settings.local.json
 karabiner/assets/
 karabiner/automatic_backups/
+/docs/
