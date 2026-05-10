@@ -17,6 +17,7 @@ Keep `docs/` in sync with the actual dotfiles state. Docs live in the Obsidian v
 | `zsh/fzf.zsh`, `bat/`, `fzf-git.sh/` | `docs/fzf.md` |
 | `gitconfig/`, `git/` | `docs/git.md` |
 | `nvim/` | `docs/nvim.md` |
+| `sketchybar/` | `docs/sketchybar.md` |
 | `tmux/` | `docs/tmux.md` |
 | `yazi/` | `docs/yazi.md` |
 | `zsh/` (excluding fzf.zsh) | `docs/zsh.md` |
@@ -26,15 +27,15 @@ Keep `docs/` in sync with the actual dotfiles state. Docs live in the Obsidian v
 
 1. Run `git diff HEAD~1 --name-only` (or `git diff --name-only` for uncommitted) to identify changed files
 2. Map changed paths to the relevant docs using the table above
-3. Read the current config files for each affected tool
-4. Read the current doc file
-5. Update only the sections that changed — preserve wikilinks, add new ones where relevant
-6. Never remove wikilinks unless the referenced tool was actually removed
+3. For each doc to update, resolve the real path: `readlink dotfiles/docs/<tool>.md`
+4. Read the current config files for each affected tool
+5. Read and edit the **resolved vault path** — never edit through the `docs/` symlink directly (the Edit tool refuses symlinks)
+6. Update only the sections that changed — preserve wikilinks, add new ones where relevant
+7. Never remove wikilinks unless the referenced tool was actually removed
 
 ## Doc file paths
 
-Vault: `~/Documents/Taccuino Cerusico/60 - Progetti/dotfiles/dotfiles - <tool>.md`
-Symlinks: `dotfiles/docs/<tool>.md` (readable but edit the vault originals)
+`dotfiles/docs/<tool>.md` are symlinks into the Obsidian vault. Always resolve with `readlink` before editing.
 
 ## Style rules
 
