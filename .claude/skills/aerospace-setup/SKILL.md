@@ -54,6 +54,17 @@ Apps with both workspace assignment and layout need separate blocks.
 | Service: reload config | `esc` |
 | Service: reset layout | `r` |
 | Service: toggle float | `f` |
+| Service: join-with (nest windows) | `alt+shift+hjkl` |
+
+## Nesting windows (asymmetric layouts)
+
+`join-with` nests two windows into a sub-container. Example: A left, B+C stacked vertically right:
+
+1. Focus B
+2. `alt+shift+;` → `alt+shift+j` (join-with down toward C)
+3. B and C become a vertical container; A stays as left column
+
+`move` (`alt+shift+hjkl` in normal mode) moves within the root container — it does NOT nest. Use `join-with` in service mode for nesting.
 
 ## Common app bundle IDs
 
