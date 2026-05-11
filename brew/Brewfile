@@ -1,6 +1,7 @@
 tap "FelixKratz/formulae"
 tap "gromgit/brewtils"
 tap "keidarcy/tap"
+tap "nikitabobko/tap"
 
 # CLI tools
 brew "atuin"
@@ -56,7 +57,7 @@ brew "gromgit/brewtils/taproom"
 brew "keidarcy/tap/e1s"
 
 # Casks
-cask "aerospace"
+cask "nikitabobko/tap/aerospace"
 cask "espanso"
 cask "font-jetbrains-mono-nerd-font"
 cask "ghostty"
