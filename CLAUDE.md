@@ -17,7 +17,6 @@ Three packages are excluded from `stow .` and handled separately in `setup.sh`:
 | `zshrc` | `~/` | `stow --target="$HOME" zshrc` |
 | `gitconfig` | `~/` | `stow --target="$HOME" gitconfig` |
 | `claude` | `~/.claude/` | `stow --target="$HOME" claude` |
-| `qutebrowser` | `~/.qutebrowser/` | `stow --target="$HOME" qutebrowser` |
 | `karabiner` | `~/.config/karabiner/` | `ln -sf` (file symlink, not stow) |
 
 ## Fresh machine bootstrap
@@ -34,8 +33,6 @@ Manual steps bootstrap.sh can't automate:
 - Nerd Font — install from [nerdfonts.com](https://www.nerdfonts.com)
 - Karabiner-Elements — grant Input Monitoring + Accessibility permissions, enable keyboard in Devices tab
 - Atuin sync — `atuin login -u <user> -p <pass> -s https://atuin-homelab.lucatrifilio.it && atuin sync`
-- qutebrowser — the Homebrew cask is deprecated; install the `.dmg` from [qutebrowser.org](https://qutebrowser.org)
-- Bitwarden CLI — `bw login` (one-time, after `setup.sh`)
 
 ## Adding a new XDG package
 
