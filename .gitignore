@@ -6,6 +6,4 @@ tmux/plugins/
 karabiner/assets/
 karabiner/automatic_backups/
 /docs/
-**/__pycache__
-**/.venv
 .claude/tasks/

@@ -17,7 +17,6 @@ Keep `docs/` in sync with the actual dotfiles state. Docs live in the Obsidian v
 | `zsh/fzf.zsh`, `bat/`, `fzf-git.sh/` | `docs/fzf.md` |
 | `gitconfig/`, `git/` | `docs/git.md` |
 | `nvim/` | `docs/nvim.md` |
-| `sketchybar/` | `docs/sketchybar.md` |
 | `tmux/` | `docs/tmux.md` |
 | `yazi/` | `docs/yazi.md` |
 | `zsh/` (excluding fzf.zsh) | `docs/zsh.md` |

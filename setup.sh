@@ -6,13 +6,8 @@ stow .                                       # nvim, ghostty, tmux, … → ~/.c
 stow --target="$HOME" zshrc                  # .zshrc → ~/
 stow --target="$HOME" gitconfig              # .gitconfig → ~/
 stow --target="$HOME" claude                 # .claude/ → ~/.claude/
-mkdir -p "$HOME/.qutebrowser"                # must exist before stow to prevent tree-folding
-stow --target="$HOME" qutebrowser           # .qutebrowser/ → ~/.qutebrowser/
 mkdir -p "$HOME/.config/karabiner"
 ln -sf "$(pwd)/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
-# qutebrowser: isolated venv so tldextract is available to the userscript
-python3 -m venv "$HOME/.qutebrowser/.venv"
-"$HOME/.qutebrowser/.venv/bin/pip" install tldextract -q
 ya pkg install                               # yazi flavors (catppuccin-macchiato)
 
 # docs/ symlinks → Obsidian vault (vault must be present)
@@ -27,7 +22,6 @@ if [ -d "$VAULT" ]; then
   ln -sf "$VAULT/dotfiles - fzf.md"         "$DOCS/fzf.md"
   ln -sf "$VAULT/dotfiles - git.md"         "$DOCS/git.md"
   ln -sf "$VAULT/dotfiles - nvim.md"        "$DOCS/nvim.md"
-  ln -sf "$VAULT/dotfiles - sketchybar.md"  "$DOCS/sketchybar.md"
   ln -sf "$VAULT/dotfiles - tmux.md"        "$DOCS/tmux.md"
   ln -sf "$VAULT/dotfiles - yazi.md"        "$DOCS/yazi.md"
   ln -sf "$VAULT/dotfiles - zsh.md"         "$DOCS/zsh.md"

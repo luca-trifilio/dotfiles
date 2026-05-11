@@ -47,10 +47,6 @@ brew "libpq"
 brew "mysql-client"
 brew "uv"
 
-# qutebrowser
-brew "choose-gui"
-brew "pinentry-mac"
-
 # Third-party taps
 brew "FelixKratz/formulae/borders"
 brew "gromgit/brewtils/taproom"
