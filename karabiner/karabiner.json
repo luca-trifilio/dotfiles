@@ -38,7 +38,7 @@
                     },
                     "ignore": false,
                     "ignore_vendor_events": true
-                },
+                }
             ],
             "name": "Default profile",
             "selected": true
