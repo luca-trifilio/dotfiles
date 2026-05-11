@@ -68,6 +68,21 @@ Apps with both workspace assignment and layout need separate blocks.
 | Music | `com.apple.Music` |
 | WhatsApp | `net.whatsapp.WhatsApp` |
 
+## Fullscreen
+
+`fullscreen` triggers macOS native fullscreen. Assign like any other command:
+```toml
+alt-shift-z = 'fullscreen'
+```
+
+## Keybinding conflicts: workspace letters
+
+Each workspace letter occupies two slots simultaneously:
+- `alt+<letter>` → switch to workspace
+- `alt+shift+<letter>` → move window to workspace
+
+To reassign `alt-shift-Z` to something else, remove `alt-Z` too (otherwise the workspace still exists but is unreachable).
+
 ## Modifier conflicts
 
 `alt+k` = focus up → can't use K as workspace letter with alt modifier.
