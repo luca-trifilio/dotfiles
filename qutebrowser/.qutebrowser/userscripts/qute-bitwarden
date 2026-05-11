@@ -1,0 +1,292 @@
+#!/bin/sh
+"exec" "$HOME/.qutebrowser/.venv/bin/python3" "$0" "$@"
+
+# Ben Francom (bfrancom) created based on qutebrowser's qute-bitwarden userscript by Chris Braun (cryzed)
+# Adapted for fzf by luca.trifilio
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# macOS version using native tools:
+#   Session caching: macOS Keychain via `security` CLI + background auto-lock thread
+#   Password prompt: pinentry-mac
+#   Item selection:  fzf
+#   Clipboard:       pbcopy
+#
+# Prerequisites:
+#   brew install bitwarden-cli pinentry-mac choose-gui
+#   python3 -m venv ~/.qutebrowser/.venv && ~/.qutebrowser/.venv/bin/pip install tldextract
+#   (setup.sh handles both of the above automatically)
+#   bw login  (one-time, manual)
+#
+# qutebrowser keybindings (config.py):
+#   config.bind(",p", "spawn --userscript qute-bitwarden")
+#   config.bind(",P", "spawn --userscript qute-bitwarden --password-only")
+#   config.bind(",u", "spawn --userscript qute-bitwarden --username-only")
+#   config.bind(",t", "spawn --userscript qute-bitwarden --totp")
+
+"""
+Insert login information using Bitwarden CLI and fzf.
+"""
+
+import argparse
+import enum
+import functools
+import json
+import os
+import subprocess
+import sys
+import tldextract
+
+# qutebrowser launches userscripts without the user's shell PATH
+os.environ["PATH"] = "/opt/homebrew/bin:/usr/local/bin:" + os.environ.get("PATH", "")
+
+KEYCHAIN_ACCOUNT = "bw_session"
+KEYCHAIN_SERVICE = "qute-bitwarden"
+
+argument_parser = argparse.ArgumentParser(description=__doc__)
+argument_parser.add_argument("url", nargs="?", default=os.getenv("QUTE_URL"))
+argument_parser.add_argument("--no-insert-mode", "-n", dest="insert_mode", action="store_false",
+                             help="Don't automatically enter insert mode")
+argument_parser.add_argument("--totp", "-t", action="store_true", help="Copy TOTP key to clipboard")
+argument_parser.add_argument("--io-encoding", "-i", default="UTF-8",
+                             help="Encoding used to communicate with subprocesses")
+argument_parser.add_argument("--merge-candidates", "-m", action="store_true",
+                             help="Merge pass candidates for fully-qualified and registered domain name")
+argument_parser.add_argument("--auto-lock", type=int, default=900,
+                             help="Automatically lock the vault after this many seconds (default: 900)")
+group = argument_parser.add_mutually_exclusive_group()
+group.add_argument("--username-only", "-e", action="store_true", help="Only insert username")
+group.add_argument("--password-only", "-w", action="store_true", help="Only insert password")
+group.add_argument("--totp-only", "-T", action="store_true", help="Only insert TOTP code")
+
+stderr = functools.partial(print, file=sys.stderr)
+
+
+class ExitCodes(enum.IntEnum):
+    SUCCESS = 0
+    FAILURE = 1
+    NO_PASS_CANDIDATES = 2
+    COULD_NOT_MATCH_USERNAME = 3
+    COULD_NOT_MATCH_PASSWORD = 4
+
+
+def qute_command(command):
+    with open(os.environ["QUTE_FIFO"], "w") as fifo:
+        fifo.write(command + "\n")
+        fifo.flush()
+
+
+def keychain_store(session_key):
+    subprocess.run(
+        ["security", "add-generic-password", "-U",
+         "-a", KEYCHAIN_ACCOUNT, "-s", KEYCHAIN_SERVICE, "-w", session_key],
+        check=True, capture_output=True,
+    )
+
+
+def keychain_retrieve():
+    result = subprocess.run(
+        ["security", "find-generic-password",
+         "-a", KEYCHAIN_ACCOUNT, "-s", KEYCHAIN_SERVICE, "-w"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        return result.stdout.strip()
+    return None
+
+
+def keychain_delete():
+    subprocess.run(
+        ["security", "delete-generic-password",
+         "-a", KEYCHAIN_ACCOUNT, "-s", KEYCHAIN_SERVICE],
+        capture_output=True,
+    )
+
+
+def schedule_auto_lock(seconds):
+    # Use a detached subprocess so the lock survives after this short-lived script exits.
+    # daemon threads are killed when the main process ends, so threading won't work here.
+    subprocess.Popen(
+        ["sh", "-c",
+         f"sleep {seconds} && security delete-generic-password "
+         f"-a {KEYCHAIN_ACCOUNT} -s {KEYCHAIN_SERVICE}"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+
+def ask_password_pinentry():
+    process = subprocess.run(
+        ["pinentry-mac"],
+        input="SETDESC Enter your Bitwarden master password\nSETPROMPT Password:\nGETPIN\n",
+        capture_output=True, text=True,
+    )
+    for line in process.stdout.splitlines():
+        if line.startswith("D "):
+            return line[2:]
+    raise Exception("Could not get master password from pinentry-mac")
+
+
+def ask_password():
+    master_pass = ask_password_pinentry()
+    return subprocess.check_output(
+        ["bw", "unlock", "--raw", "--passwordenv", "BW_MASTERPASS"],
+        env={**os.environ, "BW_MASTERPASS": master_pass},
+        text=True,
+    ).strip()
+
+
+def get_session_key(auto_lock):
+    if auto_lock == 0:
+        keychain_delete()
+        return ask_password()
+
+    session = keychain_retrieve()
+    if session:
+        return session
+
+    session = ask_password()
+    if not session:
+        raise Exception("Could not unlock vault")
+
+    keychain_store(session)
+    if auto_lock > 0:
+        schedule_auto_lock(auto_lock)
+
+    return session
+
+
+def bw_list_items(domain, encoding, auto_lock):
+    session_key = get_session_key(auto_lock)
+    process = subprocess.run(
+        ["bw", "list", "items", "--nointeraction", "--session", session_key, "--url", domain],
+        capture_output=True,
+    )
+
+    err = process.stderr.decode(encoding).strip()
+    if err:
+        stderr("Bitwarden CLI returned for {:s} - {:s}".format(domain, err))
+        if "Vault is locked" in err:
+            stderr("Vault got locked, retrying with fresh session")
+            keychain_delete()
+            return bw_list_items(domain, encoding, 0)
+
+    if process.returncode:
+        return "[]"
+    return process.stdout.decode(encoding).strip()
+
+
+def get_totp_code(selection_id, domain_name, encoding, auto_lock):
+    session_key = get_session_key(auto_lock)
+    process = subprocess.run(
+        ["bw", "get", "totp", "--nointeraction", "--session", session_key, selection_id],
+        capture_output=True,
+    )
+
+    err = process.stderr.decode(encoding).strip()
+    if err:
+        stderr("Bitwarden CLI returned for {:s} - {:s}".format(domain_name, err))
+        if "Vault is locked" in err:
+            keychain_delete()
+            return get_totp_code(selection_id, domain_name, encoding, 0)
+
+    if process.returncode:
+        return ""
+    return process.stdout.decode(encoding).strip()
+
+
+def choose_select(items, encoding):
+    process = subprocess.run(
+        ["choose"],
+        input="\n".join(items).encode(encoding),
+        stdout=subprocess.PIPE,
+    )
+    if process.returncode != 0:
+        return ""
+    return process.stdout.decode(encoding).strip()
+
+
+def fake_key_raw(text):
+    for character in text:
+        sequence = '" "' if character == " " else r"\{}".format(character)
+        qute_command("fake-key {}".format(sequence))
+
+
+def main(arguments):
+    if not arguments.url:
+        argument_parser.print_help()
+        return ExitCodes.FAILURE
+
+    extract_result = tldextract.extract(arguments.url)
+
+    candidates = []
+    for target in filter(None, [
+        extract_result.fqdn,
+        (
+            extract_result.top_domain_under_public_suffix
+            if hasattr(extract_result, "top_domain_under_public_suffix")
+            else extract_result.registered_domain
+        ),
+        extract_result.subdomain + "." + extract_result.domain,
+        extract_result.domain,
+        extract_result.ipv4,
+    ]):
+        target_candidates = json.loads(
+            bw_list_items(target, arguments.io_encoding, arguments.auto_lock)
+        )
+        if not target_candidates:
+            continue
+        candidates = candidates + target_candidates
+        if not arguments.merge_candidates:
+            break
+    else:
+        if not candidates:
+            stderr("No pass candidates for URL {!r} found!".format(arguments.url))
+            return ExitCodes.NO_PASS_CANDIDATES
+
+    if len(candidates) == 1:
+        selection = candidates.pop()
+    else:
+        choices = ["{:s} | {:s}".format(c["name"], c["login"]["username"]) for c in candidates]
+        choice = choose_select(choices, arguments.io_encoding)
+        if not choice:
+            return ExitCodes.SUCCESS
+        choice_tokens = choice.split("|")
+        choice_name = choice_tokens[0].strip()
+        choice_username = choice_tokens[1].strip()
+        selection = next(
+            (c for c in candidates if c["name"] == choice_name and c["login"]["username"] == choice_username),
+            None,
+        )
+
+    if not selection:
+        return ExitCodes.SUCCESS
+
+    username = selection["login"]["username"] or ""
+    password = selection["login"]["password"] or ""
+    totp = selection["login"].get("totp")
+
+    if arguments.insert_mode:
+        qute_command("mode-enter insert")
+
+    if arguments.username_only:
+        fake_key_raw(username)
+    elif arguments.password_only:
+        fake_key_raw(password)
+    elif arguments.totp_only:
+        fake_key_raw(get_totp_code(selection["id"], selection["name"], arguments.io_encoding, arguments.auto_lock))
+    else:
+        fake_key_raw(username)
+        qute_command("fake-key <Tab>")
+        fake_key_raw(password)
+
+    if not arguments.totp_only and totp and arguments.totp:
+        totp_code = get_totp_code(selection["id"], selection["name"], arguments.io_encoding, arguments.auto_lock)
+        subprocess.run(["pbcopy"], input=totp_code.encode(), check=True)
+
+    return ExitCodes.SUCCESS
+
+
+if __name__ == "__main__":
+    arguments = argument_parser.parse_args()
+    sys.exit(main(arguments))

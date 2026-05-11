@@ -9,6 +9,7 @@
 --ignore=^claude$
 --ignore=^\.claude$
 --ignore=^karabiner$
+--ignore=^qutebrowser$
 --ignore=^brew$
 --ignore=bootstrap.sh
 --ignore=cheatsheet.html
