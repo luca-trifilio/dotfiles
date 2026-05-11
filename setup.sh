@@ -2,10 +2,17 @@
 set -e
 cd "$(dirname "$0")"
 brew bundle install --file="$(pwd)/brew/Brewfile"
-stow .                        # nvim, ghostty, tmux → ~/.config/
+stow .                                       # nvim, ghostty, tmux, … → ~/.config/
 stow --target="$HOME" zshrc                  # .zshrc → ~/
 stow --target="$HOME" gitconfig              # .gitconfig → ~/
 stow --target="$HOME" claude                 # .claude/ → ~/.claude/
+mkdir -p "$HOME/.qutebrowser"                # must exist before stow to prevent tree-folding
+stow --target="$HOME" qutebrowser           # .qutebrowser/ → ~/.qutebrowser/
+mkdir -p "$HOME/.config/karabiner"
+ln -sf "$(pwd)/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
+# qutebrowser: isolated venv so tldextract is available to the userscript
+python3 -m venv "$HOME/.qutebrowser/.venv"
+"$HOME/.qutebrowser/.venv/bin/pip" install tldextract -q
 ya pkg install                               # yazi flavors (catppuccin-macchiato)
 
 # docs/ symlinks → Obsidian vault (vault must be present)
