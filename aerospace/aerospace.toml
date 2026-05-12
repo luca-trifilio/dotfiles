@@ -83,10 +83,6 @@ if.app-id = 'com.apple.systempreferences'
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-id = 'net.whatsapp.WhatsApp'
-run = 'layout floating'
-
-[[on-window-detected]]
 if.app-id = 'notion.id'
 run = 'move-node-to-workspace N'
 
@@ -247,7 +243,7 @@ run = 'move-node-to-workspace O'
     alt-shift-period = 'move-node-to-monitor --wrap-around next'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
-    alt-shift-semicolon = 'mode service'
+    alt-shift-comma = 'mode service'
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
