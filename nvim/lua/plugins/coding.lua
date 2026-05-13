@@ -21,6 +21,17 @@ return {
           },
         },
       },
+      on_attach = function()
+        -- Stop Gradle daemons when leaving nvim (runs once, guarded by flag)
+        if not vim.g._jdtls_vimleave_registered then
+          vim.g._jdtls_vimleave_registered = true
+          vim.api.nvim_create_autocmd("VimLeavePre", {
+            callback = function()
+              vim.fn.jobstart({ "gradle", "--stop" }, { detach = true })
+            end,
+          })
+        end
+      end,
     },
   },
   {
