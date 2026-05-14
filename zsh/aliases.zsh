@@ -10,6 +10,8 @@ alias pip=pip3
 alias cdd='cd ~'
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 
+function ts() { ~/.config/tmux/session-picker.sh }
+
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	yazi "$@" --cwd-file="$tmp"

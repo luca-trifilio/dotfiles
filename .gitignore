@@ -1,4 +1,5 @@
 .DS_Store
+/gitconfig/.gitconfig
 # TPM installs plugins to ~/.tmux/plugins/ (outside this repo)
 tmux/plugins/
 /nvim/lazy-lock.json
