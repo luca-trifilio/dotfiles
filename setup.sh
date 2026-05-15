@@ -6,8 +6,7 @@ stow .                                       # nvim, ghostty, tmux, … → ~/.c
 stow --target="$HOME" zshrc                  # .zshrc → ~/
 stow --target="$HOME" gitconfig              # .gitconfig → ~/
 stow --target="$HOME" claude                 # .claude/ → ~/.claude/
-mkdir -p "$HOME/.config/karabiner"
-ln -sf "$(pwd)/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
+ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"
 ya pkg install                               # yazi flavors (catppuccin-macchiato)
 
 # docs/ symlinks → Obsidian vault (vault must be present)
