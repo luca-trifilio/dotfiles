@@ -61,6 +61,7 @@ git add <app> .stowrc setup.sh && git commit -m "add <app>"
 - **Float formatting** in shell: `printf "%.2f"` uses locale decimal separator — use `LC_ALL=C awk '{printf "%.2f", $1}'` instead.
 - **delta Catppuccin theme**: lives in `git/catppuccin.gitconfig` (XDG, stowed to `~/.config/git/`), included via `[include] path = ~/.config/git/catppuccin.gitconfig` in `.gitconfig`. Do not move it to the `gitconfig/` package.
 - **stow --adopt**: sovrascrive i file nel repo con quelli esistenti sulla macchina — usare solo per adottare file già presenti in `~/` o `~/.config/`, non per routine restow.
+- **Karabiner-Elements**: sovrascrive i symlink ai file prima di scrivere (bug noto, non fixato upstream). Usare `ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"` — symlink alla **directory**, non al file. `.gitignore` in `karabiner/` traccia solo `karabiner.json`.
 
 ## zsh config structure
 
