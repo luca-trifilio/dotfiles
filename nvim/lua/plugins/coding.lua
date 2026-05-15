@@ -35,6 +35,34 @@ return {
     },
   },
   {
+    "stevearc/conform.nvim",
+    opts = {
+      formatters = {
+        spotless = {
+          command = "./gradlew",
+          args = function(self, ctx)
+            return { "spotlessApply", "-PspotlessIdeHook=" .. ctx.filename, "--quiet" }
+          end,
+          stdin = false,
+          cwd = require("conform.util").root_file({ "settings.gradle.kts", "build.gradle.kts", "build.gradle" }),
+          require_cwd = true,
+        },
+      },
+      formatters_by_ft = {
+        java = { "spotless" },
+      },
+    },
+    keys = {
+      {
+        "<leader>cf",
+        function()
+          require("conform").format({ async = true, lsp_format = "fallback" })
+        end,
+        desc = "Format (Spotless)",
+      },
+    },
+  },
+  {
     "tpope/vim-fugitive",
   },
   {
