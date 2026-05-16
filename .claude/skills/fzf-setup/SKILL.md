@@ -71,6 +71,8 @@ Prefer config file over `BAT_THEME` env var — cleaner and consistent with XDG 
 - `Ctrl+G` then `s` — stashes
 - `Ctrl+G` then `?` — show all bindings
 
+**The second key must be pressed WITHOUT Ctrl.** Terminals intercept `Ctrl+H` as ASCII 8 (backspace) before ZLE sees it. Use `Ctrl+G` then `h` — not `Ctrl+H`.
+
 Must be inside a git repo for bindings to show results.
 
 ## FZF_GIT_PAGER (delta preview)
