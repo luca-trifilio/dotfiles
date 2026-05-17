@@ -42,19 +42,19 @@ Apps with both workspace assignment and layout need separate blocks.
 
 ## Key keybinding patterns
 
-| Action | Shortcut |
-|---|---|
-| Focus window | `alt+hjkl` |
-| Move window | `alt+shift+hjkl` |
-| Switch workspace | `alt+<letter/number>` |
-| Move window to workspace | `alt+shift+<letter/number>` |
-| Move workspace to monitor | `alt+shift+tab` |
-| Move window to monitor | `alt+shift+period` |
-| Service mode | `alt+shift+;` |
-| Service: reload config | `esc` |
-| Service: reset layout | `r` |
-| Service: toggle float | `f` |
-| Service: join-with (nest windows) | `alt+shift+hjkl` |
+| Action                            | Shortcut                    |
+| --------------------------------- | --------------------------- |
+| Focus window                      | `alt+hjkl`                  |
+| Move window                       | `alt+shift+hjkl`            |
+| Switch workspace                  | `alt+<letter/number>`       |
+| Move window to workspace          | `alt+shift+<letter/number>` |
+| Move workspace to monitor         | `alt+shift+tab`             |
+| Move window to monitor            | `alt+shift+period`          |
+| Service mode                      | `alt+shift+;`               |
+| Service: reload config            | `esc`                       |
+| Service: reset layout             | `r`                         |
+| Service: toggle float             | `f`                         |
+| Service: join-with (nest windows) | `alt+shift+hjkl`            |
 
 ## Nesting windows (asymmetric layouts)
 
@@ -68,20 +68,21 @@ Apps with both workspace assignment and layout need separate blocks.
 
 ## Common app bundle IDs
 
-| App | Bundle ID |
-|---|---|
-| Kitty | `net.kovidgoyal.kitty` |
-| Safari | `com.apple.Safari` |
-| Mail | `com.apple.mail` |
-| Obsidian | `md.obsidian` |
-| Finder | `com.apple.finder` |
+| App                | Bundle ID                     |
+| ------------------ | ----------------------------- |
+| Kitty              | `net.kovidgoyal.kitty`        |
+| Safari             | `com.apple.Safari`            |
+| Mail               | `com.apple.mail`              |
+| Obsidian           | `md.obsidian`                 |
+| Finder             | `com.apple.finder`            |
 | System Preferences | `com.apple.systempreferences` |
-| Music | `com.apple.Music` |
-| WhatsApp | `net.whatsapp.WhatsApp` |
+| Music              | `com.apple.Music`             |
+| WhatsApp           | `net.whatsapp.WhatsApp`       |
 
 ## Fullscreen
 
 `fullscreen` triggers macOS native fullscreen. Assign like any other command:
+
 ```toml
 alt-shift-z = 'fullscreen'
 ```
@@ -89,6 +90,7 @@ alt-shift-z = 'fullscreen'
 ## Keybinding conflicts: workspace letters
 
 Each workspace letter occupies two slots simultaneously:
+
 - `alt+<letter>` → switch to workspace
 - `alt+shift+<letter>` → move window to workspace
 

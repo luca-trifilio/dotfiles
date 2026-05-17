@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 set -e
 cd "$(dirname "$0")"
+
+# --- Homebrew packages ---
 brew bundle install --file="$(pwd)/brew/Brewfile"
+
+# --- Symlinks ---
 stow .                                       # nvim, ghostty, tmux, … → ~/.config/
 stow --target="$HOME" zshrc                  # .zshrc → ~/
 stow --target="$HOME" gitconfig              # .gitconfig → ~/
 stow --target="$HOME" claude                 # .claude/ → ~/.claude/
-ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"
+ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"  # dir symlink (KE overwrites file symlinks)
+
+# --- macOS defaults ---
+defaults write org.pqrs.Karabiner-Elements NSQuitAlwaysKeepsWindows -bool false  # prevent GUI from reopening at login
+
+# --- Yazi ---
 ya pkg install                               # yazi flavors (catppuccin-macchiato)
 
-# docs/ symlinks → Obsidian vault (vault must be present)
+# --- docs/ symlinks → Obsidian vault (vault must be present) ---
 VAULT="$HOME/Documents/Taccuino Cerusico/60 - Progetti/dotfiles"
 DOCS="$(pwd)/docs"
 mkdir -p "$DOCS"
