@@ -3,7 +3,7 @@
 palette = "catppuccin_macchiato"
 add_newline = true
 
-format = "$directory$kubernetes$character"
+format = "$directory$character"
 right_format = "${custom.git_server}$git_branch${custom.git_dirty}$git_status"
 
 [character]
@@ -17,11 +17,6 @@ truncate_to_repo = false
 style = "bold lavender"
 read_only = " 󰌾"
 read_only_style = "overlay2"
-
-[kubernetes]
-disabled = false
-format = '[$symbol$context( \($namespace\))](bold sapphire) '
-symbol = "󱃾 "
 
 [git_branch]
 style = "bold mauve"
