@@ -21,3 +21,5 @@ eval "$(atuin init zsh)"
 eval "$(starship init zsh)"
 source ~/.config/zsh/zoxide.zsh
 source ~/.config/zsh/fzf.zsh
+
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
