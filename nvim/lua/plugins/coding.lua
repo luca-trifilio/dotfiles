@@ -72,30 +72,4 @@ return {
       current_line_blame = true,
     },
   },
-  {
-    "nvim-neotest/neotest",
-    opts = {
-      adapters = {
-        ["neotest-python"] = {
-          runner = "pytest",
-          args = { "-v" },
-          -- Resolve the project's venv (uv / poetry / plain .venv) per-file so
-          -- tests run against installed deps instead of the system Python.
-          python = function()
-            local cwd = vim.fn.getcwd()
-            local candidates = {
-              cwd .. "/.venv/bin/python",
-              cwd .. "/venv/bin/python",
-            }
-            for _, p in ipairs(candidates) do
-              if vim.fn.executable(p) == 1 then
-                return p
-              end
-            end
-            return "python3"
-          end,
-        },
-      },
-    },
-  },
 }
