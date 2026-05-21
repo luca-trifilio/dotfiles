@@ -6,6 +6,12 @@ Personal dotfiles at `~/Progetti/dotfiles`, managed with **GNU Stow**.
 
 Per-tool docs with current config state, paths, and gotchas: `docs/index.md`.
 
+`docs/` is **not versioned** — it's a symlink to an Obsidian vault folder managed externally. Create it manually on a new machine:
+
+```zsh
+ln -s /path/to/obsidian/vault/dotfiles ~/Progetti/dotfiles/docs
+```
+
 ## How stow works here
 
 `.stowrc` sets `--target=~/.config`. Running `stow .` symlinks every top-level directory into `~/.config/` automatically. No changes to `.stowrc` or `setup.sh` needed when adding XDG packages.
