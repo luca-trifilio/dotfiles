@@ -11,7 +11,7 @@ status() { echo ""; echo "── $1"; }
 # ── Base packages ─────────────────────────────────────────────────────────────
 status "apt packages"
 run apt-get update -qq
-run apt-get install -y zsh stow git curl fzf fd-find bat neovim
+run apt-get install -y zsh stow git curl fzf fd-find bat neovim unzip
 
 # fd and bat ship with different binary names on Ubuntu
 mkdir -p "$HOME/.local/bin"
