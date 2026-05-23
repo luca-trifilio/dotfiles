@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")"
 
-stow tmux starship zsh
+stow .
 stow --target="$HOME" zshrc
 stow --target="$HOME" gitconfig
 

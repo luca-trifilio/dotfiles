@@ -11,5 +11,7 @@
 --ignore=^karabiner$
 --ignore=^brew$
 --ignore=bootstrap.sh
+--ignore=bootstrap-linux.sh
+--ignore=setup-linux.sh
 --ignore=cheatsheet.html
 --ignore=^docs$
