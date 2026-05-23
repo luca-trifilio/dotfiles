@@ -29,6 +29,14 @@ else
   run curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 fi
 
+# ── Eza ───────────────────────────────────────────────────────────────────────
+status "Eza"
+if command -v eza &>/dev/null; then
+  echo "  already installed"
+else
+  run apt-get install -y eza
+fi
+
 # ── Atuin ─────────────────────────────────────────────────────────────────────
 status "Atuin"
 if command -v atuin &>/dev/null; then
