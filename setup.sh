@@ -12,13 +12,23 @@ stow --target="$HOME" gitconfig              # .gitconfig → ~/
 stow --target="$HOME" claude                 # .claude/ → ~/.claude/
 ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"  # dir symlink (KE overwrites file symlinks)
 
-# --- kanata LaunchDaemon (runs as root, needs Karabiner driver) ---
+# --- kanata LaunchDaemon (runs as root, needs Karabiner VirtualHID driver) ---
 sudo cp "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" /Library/LaunchDaemons/
 sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
 sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
 
-# --- macOS defaults ---
-defaults write org.pqrs.Karabiner-Elements NSQuitAlwaysKeepsWindows -bool false  # prevent GUI from reopening at login
+# --- Disable KE daemons/agents (keep only VirtualHID driver for kanata) ---
+for agent in \
+  org.pqrs.service.agent.Karabiner-Core-Service \
+  org.pqrs.service.agent.Karabiner-Core-Service-rev2 \
+  org.pqrs.service.agent.karabiner_console_user_server \
+  org.pqrs.service.agent.karabiner_session_monitor \
+  org.pqrs.service.agent.Karabiner-NotificationWindow; do
+  launchctl disable gui/$(id -u)/$agent 2>/dev/null || true
+  launchctl bootout gui/$(id -u)/$agent 2>/dev/null || true
+done
+sudo launchctl disable system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/dev/null || true
+sudo launchctl bootout system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/dev/null || true
 
 # --- Yazi ---
 ya pkg install                               # yazi flavors (catppuccin-macchiato)
