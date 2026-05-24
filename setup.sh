@@ -12,6 +12,11 @@ stow --target="$HOME" gitconfig              # .gitconfig → ~/
 stow --target="$HOME" claude                 # .claude/ → ~/.claude/
 ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"  # dir symlink (KE overwrites file symlinks)
 
+# --- kanata LaunchDaemon (runs as root, needs Karabiner driver) ---
+sudo cp "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" /Library/LaunchDaemons/
+sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+
 # --- macOS defaults ---
 defaults write org.pqrs.Karabiner-Elements NSQuitAlwaysKeepsWindows -bool false  # prevent GUI from reopening at login
 
