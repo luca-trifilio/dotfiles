@@ -15,3 +15,4 @@
 --ignore=setup-linux.sh
 --ignore=cheatsheet.html
 --ignore=^docs$
+--ignore=^kanata-daemon$
