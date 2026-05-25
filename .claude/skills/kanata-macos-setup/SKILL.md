@@ -8,7 +8,7 @@ description: Use when the user asks to "set up kanata", "replace karabiner",
 ## Context
 
 On macOS, kanata uses the Karabiner DriverKit VirtualHIDDevice for output.
-KE cannot be fully uninstalled — keep it installed but disable all its daemons.
+KE app can be fully uninstalled — only the VirtualHID driver must remain.
 Kanata must run as root via LaunchDaemon (not LaunchAgent).
 
 ## File layout in dotfiles
@@ -16,7 +16,7 @@ Kanata must run as root via LaunchDaemon (not LaunchAgent).
 | Path | Purpose |
 |---|---|
 | `kanata/kanata.kbd` | Config (XDG, stowed to `~/.config/kanata/`) |
-| `kanata-daemon/com.lucatrifilio.kanata.plist` | LaunchDaemon (excluded from stow, installed to `/Library/LaunchDaemons/` via setup.sh) |
+| `kanata-daemon/com.lucatrifilio.kanata.plist` | LaunchDaemon template (excluded from stow, installed to `/Library/LaunchDaemons/` via setup.sh) |
 
 Add `--ignore=^kanata-daemon$` to `.stowrc`.
 
@@ -48,6 +48,8 @@ All others (external keyboards, Glove80, etc.) are ignored automatically.
 
 ## LaunchDaemon plist template
 
+Use `__HOME__` as placeholder — setup.sh substitutes it with `$HOME` at install time.
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -60,7 +62,7 @@ All others (external keyboards, Glove80, etc.) are ignored automatically.
     <array>
         <string>/opt/homebrew/bin/kanata</string>
         <string>--cfg</string>
-        <string>/Users/lucatrifilio/.config/kanata/kanata.kbd</string>
+        <string>__HOME__/.config/kanata/kanata.kbd</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -77,8 +79,9 @@ All others (external keyboards, Glove80, etc.) are ignored automatically.
 ## setup.sh steps
 
 ```bash
-# Install kanata LaunchDaemon
-sudo cp "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" /Library/LaunchDaemons/
+# Install kanata LaunchDaemon (substitute $HOME at install time)
+sed "s|__HOME__|$HOME|g" "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" \
+  | sudo tee /Library/LaunchDaemons/com.lucatrifilio.kanata.plist > /dev/null
 sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
 sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
 
@@ -100,12 +103,26 @@ sudo launchctl bootout system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/
 
 ```
 brew "kanata"
-cask "karabiner-elements"  # needed for VirtualHID driver
+# karabiner-elements cask NOT needed — only VirtualHID driver required,
+# which persists after uninstalling KE app
 ```
 
-## Manual step (new machine)
+## Manual steps (new machine)
 
-Add `/opt/homebrew/bin/kanata` to **System Settings → Privacy & Security → Input Monitoring**.
+1. Add `/opt/homebrew/bin/kanata` to **System Settings → Privacy & Security → Input Monitoring**
+2. Remove leftover KE entries from Input Monitoring if present
+
+## KE cleanup (new machine)
+
+After setup.sh disables KE daemons, remove KE app files:
+
+```bash
+sudo rm -rf '/Applications/Karabiner-Elements.app'
+sudo rm -rf '/Applications/Karabiner-EventViewer.app'
+sudo rm -rf '/Library/Application Support/org.pqrs/Karabiner-Elements'
+```
+
+Leave `/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice` intact.
 
 ## KE services reference
 
