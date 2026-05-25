@@ -13,7 +13,8 @@ stow --target="$HOME" claude                 # .claude/ → ~/.claude/
 ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"  # dir symlink (KE overwrites file symlinks)
 
 # --- kanata LaunchDaemon (runs as root, needs Karabiner VirtualHID driver) ---
-sudo cp "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" /Library/LaunchDaemons/
+sed "s|__HOME__|$HOME|g" "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" \
+  | sudo tee /Library/LaunchDaemons/com.lucatrifilio.kanata.plist > /dev/null
 sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
 sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
 
