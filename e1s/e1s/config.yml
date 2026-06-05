@@ -1,0 +1,15 @@
+# e1s config — Catppuccin Macchiato theme
+refresh: 30
+
+colors:
+  BgColor: "#24273a"    # Base
+  FgColor: "#cad3f5"    # Text
+  BorderColor: "#8aadf4" # Blue
+  Black: "#24273a"      # Base
+  Red: "#ed8796"        # Red
+  Green: "#a6da95"      # Green
+  Yellow: "#eed49f"     # Yellow
+  Blue: "#8aadf4"       # Blue
+  Magenta: "#c6a0f6"    # Mauve
+  Cyan: "#8bd5ca"       # Teal
+  Gray: "#6e738d"       # Overlay0
