@@ -113,6 +113,27 @@ Kanata is invoked directly — no wrapper script needed. The VirtualHIDDevice-Da
 </plist>
 ```
 
+## Troubleshooting: kanata not running after reboot (plist present but not bootstrapped)
+
+**Symptom**: kanata not working after reboot; plist exists in `/Library/LaunchDaemons/` but `sudo launchctl list | grep kanata` returns nothing. Process can only be started manually with `sudo kanata ...`.
+
+**Cause**: the plist was copied to `/Library/LaunchDaemons/` but never bootstrapped into launchd (e.g. setup.sh ran `cp` but not `bootstrap`, or the service was `bootout`ed).
+
+**Diagnose**:
+```bash
+sudo launchctl print system/com.lucatrifilio.kanata
+# "Could not find service" = not bootstrapped
+```
+
+**Fix**:
+```bash
+sudo kill $(pgrep -x kanata) 2>/dev/null || true
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+sudo launchctl print system/com.lucatrifilio.kanata  # should show state = running
+```
+
+---
+
 ## Troubleshooting: keyboard blocked after boot
 
 **Symptom**: internal keyboard works at login screen but stops after login. `cat /tmp/kanata.log` shows `connect_failed asio.system:61` in a loop.
