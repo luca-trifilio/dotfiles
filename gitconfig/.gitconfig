@@ -50,3 +50,6 @@
 
 [include]
 	path = ~/.gitconfig-local
+[http "https://git-homelab.lucatrifilio.it"]
+	extraHeader = CF-Access-Client-Id: REDACTED_CF_CLIENT_ID
+	extraHeader = CF-Access-Client-Secret: REDACTED_CF_CLIENT_SECRET
