@@ -42,6 +42,8 @@ brew "yazi"
 brew "zoxide"
 
 # Dev
+brew "colima"
+brew "docker"
 brew "act"
 brew "bitwarden-cli"
 brew "go"

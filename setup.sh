@@ -11,6 +11,8 @@ stow --target="$HOME" zshrc                  # .zshrc → ~/
 stow --target="$HOME" gitconfig              # .gitconfig → ~/
 stow --target="$HOME" claude                 # .claude/ → ~/.claude/
 ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"  # dir symlink (KE overwrites file symlinks)
+mkdir -p "$HOME/.config/colima/default"
+ln -sf "$(pwd)/colima/default/colima.yaml" "$HOME/.config/colima/default/colima.yaml"  # file symlink (runtime data coexists in same dir)
 
 # --- kanata LaunchDaemon (runs as root, needs Karabiner VirtualHID driver) ---
 sed "s|__HOME__|$HOME|g" "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" \
@@ -30,6 +32,9 @@ for agent in \
 done
 sudo launchctl disable system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/dev/null || true
 sudo launchctl bootout system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/dev/null || true
+
+# --- Colima autostart ---
+brew services start colima 2>/dev/null || true
 
 # --- Yazi ---
 ya pkg install                               # yazi flavors (catppuccin-macchiato)

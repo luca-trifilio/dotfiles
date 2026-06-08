@@ -16,7 +16,7 @@ ln -s /path/to/obsidian/vault/dotfiles ~/Progetti/dotfiles/docs
 
 `.stowrc` sets `--target=~/.config`. Running `stow .` symlinks every top-level directory into `~/.config/` automatically. No changes to `.stowrc` or `setup.sh` needed when adding XDG packages.
 
-Three packages are excluded from `stow .` and handled separately in `setup.sh`:
+Some packages are excluded from `stow .` and handled separately in `setup.sh`:
 
 | Package | Target | Command |
 |---|---|---|
@@ -24,6 +24,7 @@ Three packages are excluded from `stow .` and handled separately in `setup.sh`:
 | `gitconfig` | `~/` | `stow --target="$HOME" gitconfig` |
 | `claude` | `~/.claude/` | `stow --target="$HOME" claude` |
 | `karabiner` | `~/.config/karabiner/` | `ln -sf` (file symlink, not stow) |
+| `colima` | ignored in `.stowrc` | `colima.yaml` già linkato manualmente; la dir è gestita da Colima a runtime (contiene socket) |
 
 ## Fresh machine bootstrap
 

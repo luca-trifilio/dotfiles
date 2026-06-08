@@ -16,3 +16,4 @@
 --ignore=cheatsheet.html
 --ignore=^docs$
 --ignore=^kanata-daemon$
+--ignore=^colima$

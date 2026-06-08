@@ -13,3 +13,7 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export STARSHIP_CONFIG=~/.config/starship/starship.toml
 
 export _ZO_DOCTOR=0
+
+# Colima — Docker socket for Testcontainers
+export DOCKER_HOST="unix://${HOME}/.config/colima/default/docker.sock"
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock

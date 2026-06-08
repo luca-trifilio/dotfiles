@@ -113,6 +113,24 @@ Kanata is invoked directly — no wrapper script needed. The VirtualHIDDevice-Da
 </plist>
 ```
 
+## Troubleshooting: kanata stopped working after dotfiles change
+
+**Symptom**: kanata smette di funzionare dopo una modifica al plist template in dotfiles (es. refactor, nuovo path, nuovi argomenti).
+
+**Cause**: il plist in `/Library/LaunchDaemons/` non si aggiorna automaticamente quando cambia il template nel repo — sono due file separati. `setup.sh` va rieseguito manualmente per propagare il cambiamento.
+
+**Fix**: reinstalla il plist dal template aggiornato:
+```bash
+cd ~/Progetti/dotfiles
+sed "s|__HOME__|$HOME|g" kanata-daemon/com.lucatrifilio.kanata.plist > /tmp/kanata.plist
+sudo cp /tmp/kanata.plist /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+sudo launchctl list | grep kanata  # deve mostrare PID numerico
+```
+
+---
+
 ## Troubleshooting: kanata not running after reboot (plist present but not bootstrapped)
 
 **Symptom**: kanata not working after reboot; plist exists in `/Library/LaunchDaemons/` but `sudo launchctl list | grep kanata` returns nothing. Process can only be started manually with `sudo kanata ...`.
