@@ -37,11 +37,11 @@ Add `--ignore=^kanata-daemon$` to `.stowrc`.
 )
 
 (defsrc
-  caps
+  caps f1   f2   f7   f8 f9   f10  f11  f12
 )
 
 (deflayer base
-  @cap
+  @cap brdn brup prev pp next mute vold volu
 )
 
 (defalias
@@ -51,6 +51,8 @@ Add `--ignore=^kanata-daemon$` to `.stowrc`.
 
 `macos-dev-names-include` is a whitelist — only listed devices are intercepted.
 All others (external keyboards, Glove80, etc.) are ignored automatically.
+
+**Media keys**: when kanata grabs the device in exclusive mode, the Apple keyboard sends media keys as F-keys (F1, F2, F7-F12) rather than consumer HID events. They must be explicitly mapped back to consumer outputs (`brdn`, `brup`, `mute`, `vold`, `volu`, `pp`, `prev`, `next`) — transparent `_` is not enough. Do NOT use `process-unmapped-keys no` to fix this; it breaks caps lock remapping.
 
 ## LaunchDaemon plist templates
 
@@ -171,6 +173,48 @@ ps aux | grep -E "kanata|VirtualHIDDevice-Daemon"
 3. Re-bootstrap kanata
 
 **Note on `com.apple.provenance`**: files created via `sudo tee` get this xattr and become immutable even with sudo. Workaround: write to `/tmp/` first, then `sudo cp` to `/Library/LaunchDaemons/`.
+
+---
+
+## Troubleshooting: KE agents revive and break caps lock remapping (recurring)
+
+**Symptom**: caps lock remapping stops working; kanata log loops `driver connected: false / driver connected: true`. Media keys may also break.
+
+**Cause**: KE user agents (especially `Karabiner-Core-Service-rev2`) restart after a macOS update or KE reinstall, grabbing the HID device before kanata. Always check **both** system daemon and user agents.
+
+**Diagnose**:
+```bash
+sudo launchctl list | grep karabiner   # system daemon
+launchctl list | grep karabiner        # user agents — Core-Service-rev2 is the main offender
+tail -20 /tmp/kanata.log               # loop = device conflict
+```
+
+**Fix**:
+```bash
+sudo launchctl disable system/org.pqrs.service.daemon.Karabiner-Core-Service
+sudo launchctl bootout system/org.pqrs.service.daemon.Karabiner-Core-Service
+for agent in \
+  org.pqrs.service.agent.Karabiner-Core-Service \
+  org.pqrs.service.agent.Karabiner-Core-Service-rev2 \
+  org.pqrs.service.agent.karabiner_console_user_server \
+  org.pqrs.service.agent.karabiner_session_monitor \
+  org.pqrs.service.agent.Karabiner-NotificationWindow; do
+  launchctl disable gui/$(id -u)/$agent 2>/dev/null || true
+  launchctl bootout gui/$(id -u)/$agent 2>/dev/null || true
+done
+sudo launchctl bootout system/com.lucatrifilio.kanata
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+```
+
+---
+
+## Troubleshooting: media keys (volume, brightness, play/pause) not working
+
+**Symptom**: pressing F1/F2/F7-F12 triggers standard F-key actions instead of media actions.
+
+**Cause**: when kanata grabs the device in exclusive mode (`process-unmapped-keys yes`), the Apple keyboard delivers media keys as F1/F2/F7-F12 (keyboard HID page). kanata re-emits them as plain F-keys through VirtualHID, which macOS doesn't translate to media actions.
+
+**Fix**: map F-keys explicitly to consumer outputs in `defsrc`/`deflayer` (see template above). Do NOT switch to `process-unmapped-keys no` — it restores media keys but breaks caps lock remapping.
 
 ## setup.sh steps
 
