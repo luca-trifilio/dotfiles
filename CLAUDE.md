@@ -39,7 +39,7 @@ cd ~/Progetti/dotfiles
 Manual steps bootstrap.sh can't automate:
 - Nerd Font — install from [nerdfonts.com](https://www.nerdfonts.com)
 - Karabiner-Elements — grant Input Monitoring + Accessibility permissions, enable keyboard in Devices tab
-- Atuin sync — `atuin login -u <user> -p <pass> -s https://atuin-homelab.lucatrifilio.it && atuin sync`
+- Atuin — sync disabled (`auto_sync = false`), no server. Local history only.
 
 ## Adding a new XDG package
 
@@ -91,7 +91,7 @@ Custom plugins (cloned in `~/.oh-my-zsh/custom/plugins/`): `zsh-completions`, `f
 
 ## Atuin
 
-Shell history sync, self-hosted at `atuin-homelab.lucatrifilio.it`. Config at `dotfiles/atuin/config.toml` (XDG, stowed). Replaces `Ctrl+R`. Syncs every 10min triggered by any command.
+Local shell history, no sync server. Config at `dotfiles/atuin/config.toml` (stowed via directory symlink: `~/.config/atuin → dotfiles/atuin`). Replaces `Ctrl+R`. Catppuccin Macchiato theme in `dotfiles/atuin/themes/`.
 
 ## nvim structure
 

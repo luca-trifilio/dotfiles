@@ -28,7 +28,7 @@ cd ~/Progetti/dotfiles
 1. **Nerd Font** — install from [nerdfonts.com](https://www.nerdfonts.com) and set in Ghostty config
 2. **Karabiner-Elements** — grant Input Monitoring + Accessibility in System Settings → Privacy & Security; enable driver in System Settings → General → Login Items & Extensions → Driver Extensions
 3. **tmux plugins** — inside tmux: `prefix + I` to install via TPM
-4. **Atuin sync** — `atuin login -u <user> -p <pass> -s https://atuin-homelab.lucatrifilio.it` then `atuin sync`
+4. **Atuin** — local history only, sync disabled. No configuration needed.
 5. **Java JDK** (optional, for nvim-jdtls) — `brew install temurin`
 
 ## Adding a package
