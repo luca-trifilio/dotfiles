@@ -4,8 +4,8 @@ return {
     opts = {
       sources = {
         per_filetype = {
-          -- In markdown, only use obsidian sources (suppress generic completions)
-          markdown = {},
+          -- obsidian.nvim migrated to in-process LSP; "lsp" is required
+          markdown = { "lsp" },
         },
       },
     },
