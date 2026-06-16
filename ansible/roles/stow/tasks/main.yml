@@ -1,0 +1,54 @@
+---
+# --- XDG packages (target = ~/.config, from .stowrc) ---
+- name: Simulate stow of XDG packages
+  ansible.builtin.command:
+    cmd: stow --simulate --no-folding --verbose=2 .
+    chdir: "{{ dotfiles_dir }}"
+  register: stow_xdg_simulate
+  changed_when: "'LINK:' in stow_xdg_simulate.stderr"
+  check_mode: false
+  tags: stow
+
+- name: Apply stow of XDG packages
+  ansible.builtin.command:
+    cmd: stow --no-folding .
+    chdir: "{{ dotfiles_dir }}"
+  changed_when: "'LINK:' in stow_xdg_simulate.stderr"
+  when: not ansible_check_mode
+  tags: stow
+
+# --- Home-target packages (target = $HOME) ---
+- name: Simulate stow of home-target packages
+  ansible.builtin.command:
+    cmd: "stow --simulate --no-folding --verbose=2 --target={{ ansible_env.HOME }} {{ item }}"
+    chdir: "{{ dotfiles_dir }}"
+  loop:
+    - zshrc
+    - gitconfig
+    - claude
+  register: stow_home_simulate
+  changed_when: "'LINK:' in stow_home_simulate.stderr"
+  check_mode: false
+  tags: stow
+
+- name: Apply stow of home-target packages
+  ansible.builtin.command:
+    cmd: "stow --no-folding --target={{ ansible_env.HOME }} {{ item.item }}"
+    chdir: "{{ dotfiles_dir }}"
+  loop: "{{ stow_home_simulate.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  changed_when: "'LINK:' in item.stderr"
+  when: not ansible_check_mode
+  tags: stow
+
+# --- Templated work-only git override ---
+- name: Template ~/.gitconfig-local (work only)
+  ansible.builtin.template:
+    src: gitconfig-local.j2
+    dest: "{{ ansible_env.HOME }}/.gitconfig-local"
+    mode: "0644"
+  when:
+    - "'work' in group_names"
+    - work_git_email is defined
+  tags: stow

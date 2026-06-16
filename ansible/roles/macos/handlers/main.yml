@@ -1,0 +1,15 @@
+---
+- name: Bootout kanata daemon (for reload)
+  ansible.builtin.command:
+    cmd: launchctl bootout system/com.lucatrifilio.kanata
+  become: true
+  failed_when: false
+  changed_when: false
+  listen: reload kanata daemon
+
+- name: Bootstrap kanata daemon (for reload)
+  ansible.builtin.command:
+    cmd: launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+  become: true
+  changed_when: true
+  listen: reload kanata daemon

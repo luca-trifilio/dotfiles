@@ -1,0 +1,10 @@
+all:
+  children:
+    work:
+      hosts:
+        work-mac:
+          ansible_connection: local
+    personal:
+      hosts:
+        personal-mac:
+          ansible_connection: local

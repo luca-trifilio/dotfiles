@@ -1,0 +1,14 @@
+---
+machine_profile: personal
+# TODO: run `hostname` / `scutil --get LocalHostName` on the personal Mac and set it here.
+expected_hostname: "PLACEHOLDER_RUN_HOSTNAME_ON_PERSONAL_MAC"
+
+git_user_email: "luca.trifilio@gmail.com"
+
+enable_docs: true
+
+# Personal-only formulae (none yet — add machine-specific packages here)
+brew_packages_extra: []
+
+# Personal-only casks (none yet — add machine-specific casks here)
+brew_casks_extra: []

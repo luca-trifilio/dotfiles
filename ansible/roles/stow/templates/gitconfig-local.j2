@@ -1,0 +1,11 @@
+# Managed by Ansible (roles/stow). DO NOT EDIT BY HAND.
+# Values come from the SOPS vault group_vars/work/vault.sops.yaml — edit the vault instead.
+# This file is overwritten on every playbook run.
+[user]
+	email = {{ work_git_email }}
+
+# Cloudflare Access headers for the homelab git remote.
+# cf_access_client_id / cf_access_client_secret are provided by the vault.
+[http "https://git-homelab.lucatrifilio.it"]
+	extraHeader = CF-Access-Client-Id: {{ cf_access_client_id }}
+	extraHeader = CF-Access-Client-Secret: {{ cf_access_client_secret }}

@@ -1,0 +1,91 @@
+---
+# Repo root: ansible/ lives one level under the dotfiles repo, so dotfiles_dir is
+# the parent of playbook_dir (.../dotfiles/ansible/playbooks -> .../dotfiles).
+dotfiles_dir: "{{ (playbook_dir | dirname) | dirname }}"
+
+# Git identity (email is set per profile in group_vars/{work,personal})
+git_user_name: "Luca Trifilio"
+git_signing_key: "~/.ssh/id_ed25519.pub"
+
+# Feature toggles (defaults for both machines)
+enable_kanata: true
+
+# Manage the homelab SSH host block in ~/.ssh/config (both machines).
+# Rendered into a blockinfile-marked region so the colima includes and the
+# github.com / github-personal identity blocks are left untouched.
+enable_ssh_homelab: true
+
+# Homebrew
+homebrew_prefix: "/opt/homebrew"
+
+brew_taps:
+  - FelixKratz/formulae
+  - gromgit/brewtils
+  - keidarcy/tap
+  - nikitabobko/tap
+
+# Common CLI formulae (present on every machine)
+brew_packages:
+  - atuin
+  - bat
+  - btop
+  - direnv
+  - eza
+  - fd
+  - ffmpeg
+  - ffmpegthumbnailer
+  - fzf
+  - gh
+  - git
+  - git-delta
+  - gnupg
+  - imagemagick
+  - jq
+  - kanata
+  - jdtls
+  - k9s
+  - kubectl
+  - kubectx
+  - lazydocker
+  - lazygit
+  - mactop
+  - neovim
+  - ollama
+  - opencode
+  - poppler
+  - ripgrep
+  - sops
+  - age
+  - sevenzip
+  - starship
+  - stow
+  - tmux
+  - tree
+  - yazi
+  - zoxide
+
+# Common dev formulae
+brew_packages_dev:
+  - colima
+  - docker
+  - act
+  - bitwarden-cli
+  - go
+  - uv
+
+# Third-party tap formulae (common)
+brew_packages_tap:
+  - FelixKratz/formulae/borders
+  - gromgit/brewtils/taproom
+  - keidarcy/tap/e1s
+
+# Common casks
+brew_casks:
+  - nikitabobko/tap/aerospace
+  - espanso
+  - font-jetbrains-mono-nerd-font
+  - kitty
+  - ngrok
+
+# Obsidian vault path backing docs/ (only symlinked when enable_docs)
+docs_vault_path: "~/Documents/Taccuino Cerusico/60 - Progetti/dotfiles"

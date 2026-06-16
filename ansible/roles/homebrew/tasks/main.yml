@@ -1,0 +1,66 @@
+---
+- name: Install Homebrew if missing
+  ansible.builtin.command:
+    cmd: >-
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    creates: "{{ homebrew_prefix }}/bin/brew"
+  environment:
+    NONINTERACTIVE: "1"
+  tags: install
+
+- name: Add Homebrew taps
+  community.general.homebrew_tap:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ brew_taps }}"
+  tags: install
+
+# Homebrew 4.x requires explicit trust for third-party taps before installing their formulae/casks.
+- name: Trust third-party taps
+  ansible.builtin.command:
+    cmd: "brew trust {{ brew_taps | join(' ') }}"
+  register: brew_trust_result
+  changed_when: "'already trusted' not in brew_trust_result.stdout"
+  failed_when: false
+  tags: install
+
+- name: Install common + dev + tap formulae
+  community.general.homebrew:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ brew_packages + brew_packages_dev + brew_packages_tap }}"
+  tags: install
+
+- name: Install profile-specific formulae
+  community.general.homebrew:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ brew_packages_extra }}"
+  when:
+    - brew_packages_extra is defined
+    - brew_packages_extra | length > 0
+  tags: install
+
+- name: Install common casks
+  community.general.homebrew_cask:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ brew_casks }}"
+  tags: install
+
+- name: Install profile-specific casks
+  community.general.homebrew_cask:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ brew_casks_extra }}"
+  when:
+    - brew_casks_extra is defined
+    - brew_casks_extra | length > 0
+  tags: install
+
+- name: Reminder — manual Homebrew-adjacent steps
+  ansible.builtin.debug:
+    msg:
+      - "Nerd Font: install JetBrainsMono Nerd Font from https://www.nerdfonts.com (also shipped as cask font-jetbrains-mono-nerd-font)."
+      - "Java JDK (optional, for nvim-jdtls): brew install temurin"
+  tags: install
