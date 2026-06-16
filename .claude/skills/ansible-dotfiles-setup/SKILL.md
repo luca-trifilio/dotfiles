@@ -64,6 +64,16 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ./setup.sh
 - Common casks: `group_vars/all/main.yml` → `brew_casks`
 - Work-only formulae: `group_vars/work/main.yml` → `brew_packages_extra`
 - Work-only casks: `group_vars/work/main.yml` → `brew_casks_extra`
+- Personal-only formulae: `group_vars/personal/main.yml` → `brew_packages_extra`
+
+## Moving packages between profiles
+
+To move a formula from common (`all`) to work-only:
+1. Remove from `group_vars/all/main.yml` (`brew_packages` or `brew_packages_tap`)
+2. Add to `group_vars/work/main.yml` → `brew_packages_extra`
+
+`brew_packages_extra` accepts full tap-prefixed names: `keidarcy/tap/e1s`.
+Leaving the tap in `brew_taps` (all) without its formula is harmless — the tap is just added, nothing installed from it.
 
 ## Known gotchas
 
@@ -93,11 +103,29 @@ Add `--ignore=^ansible$` to `.stowrc` to prevent stow from symlinking `ansible/`
 ## Bootstrapping a new Mac
 
 1. `git clone git@github.com:luca-trifilio/dotfiles.git ~/Progetti/dotfiles`
-2. Copy age key: `cp /path/to/keys.txt ~/.config/sops/age/keys.txt`
-3. Update `expected_hostname` in `group_vars/{work,personal}/main.yml` if needed (`hostname` to check)
-4. Install ansible collections: `cd ansible && ansible-galaxy collection install -r requirements.yml`
-5. Run: `SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ansible-playbook playbooks/mac.yml --limit work-mac --ask-become-pass`
-6. Manual steps (cannot be automated): Input Monitoring + Accessibility permissions for Karabiner, Driver Extension approval, `prefix + I` in tmux for TPM plugins
+2. Copy age key from existing Mac (AirDrop or scp): `~/.config/sops/age/keys.txt`
+3. Verify the hostname ansible will see (use this, not just `hostname` — avoids `.local` FQDN confusion):
+   ```bash
+   cd ansible && ansible -m setup localhost -a 'filter=ansible_hostname'
+   # → "ansible_hostname": "MacBook-Pro-M4-Max-di-Luca"
+   ```
+4. Update `expected_hostname` in `group_vars/{work,personal}/main.yml` with that value
+5. Install ansible collections: `cd ansible && ansible-galaxy collection install -r requirements.yml`
+6. Dry run (no sudo needed — become tasks are guarded with `when: not ansible_check_mode`):
+   ```bash
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
+     ansible-playbook playbooks/mac.yml --limit personal-mac --check --diff
+   ```
+7. Full run:
+   ```bash
+   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
+     ansible-playbook playbooks/mac.yml --limit personal-mac --ask-become-pass
+   ```
+8. If colima was already installed and `~/.colima` exists, migrate to XDG:
+   ```bash
+   colima stop && mv ~/.colima ~/.config/colima && colima start
+   ```
+9. Manual steps (cannot be automated): Input Monitoring + Accessibility permissions for Karabiner, Driver Extension approval, `prefix + I` in tmux for TPM plugins
 
 ## SOPS vault
 

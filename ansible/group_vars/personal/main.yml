@@ -1,7 +1,6 @@
 ---
 machine_profile: personal
-# TODO: run `hostname` / `scutil --get LocalHostName` on the personal Mac and set it here.
-expected_hostname: "PLACEHOLDER_RUN_HOSTNAME_ON_PERSONAL_MAC"
+expected_hostname: "MacBook-Pro-M4-Max-di-Luca"
 
 git_user_email: "luca.trifilio@gmail.com"
 

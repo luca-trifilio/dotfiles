@@ -48,7 +48,6 @@ brew_packages:
   - kubectx
   - lazydocker
   - lazygit
-  - mactop
   - neovim
   - ollama
   - opencode
@@ -77,7 +76,6 @@ brew_packages_dev:
 brew_packages_tap:
   - FelixKratz/formulae/borders
   - gromgit/brewtils/taproom
-  - keidarcy/tap/e1s
 
 # Common casks
 brew_casks:

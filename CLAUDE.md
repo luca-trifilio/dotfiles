@@ -28,18 +28,32 @@ Some packages are excluded from `stow .` and handled separately in `setup.sh`:
 
 ## Fresh machine bootstrap
 
+Ansible è il metodo principale. `bootstrap.sh` è il solo prereq (installa Homebrew e Ansible).
+
 ```zsh
 git clone https://github.com/luca-trifilio/dotfiles.git ~/Progetti/dotfiles
 cd ~/Progetti/dotfiles
-./bootstrap.sh   # Homebrew, CLI tools, Oh My Zsh, OMZ plugins, fzf-git, Bun, TPM
-./setup.sh       # brew bundle, stow all symlinks, yazi flavors (ya pkg install)
-# Inside tmux: prefix + I to install plugins via TPM
+
+# 1. Prereq (Homebrew + Ansible)
+./bootstrap.sh
+
+# 2. Copia la SOPS age key da un'altra macchina
+mkdir -p ~/.config/sops/age
+# scp / AirDrop → ~/.config/sops/age/keys.txt
+
+# 3. Installa le collections
+cd ansible && ansible-galaxy collection install -r requirements.yml
+
+# 4. Esegui il playbook (chiede profilo interattivamente: personal/work)
+SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
+  ansible-playbook playbooks/new-mac.yml --ask-become-pass
 ```
 
-Manual steps bootstrap.sh can't automate:
-- Nerd Font — install from [nerdfonts.com](https://www.nerdfonts.com)
-- Karabiner-Elements — grant Input Monitoring + Accessibility permissions, enable keyboard in Devices tab
-- Atuin — sync disabled (`auto_sync = false`), no server. Local history only.
+Manual steps non automatizzabili:
+- **Nerd Font** — installa da [nerdfonts.com](https://www.nerdfonts.com)
+- **Karabiner-Elements** — Input Monitoring + Accessibility in Impostazioni di Sistema → Privacy e Sicurezza; Driver Extension in Generale → Elementi di Login ed Estensioni
+- **tmux plugins** — dentro tmux: `prefix + I`
+- **Colima XDG** — se `~/.colima` esiste da installazione precedente: `colima stop && mv ~/.colima ~/.config/colima && colima start`
 
 ## Adding a new XDG package
 

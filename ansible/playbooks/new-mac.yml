@@ -1,0 +1,84 @@
+---
+# Bootstrap playbook for a new Mac.
+# Prompts for profile (personal/work), then runs all roles against the right host.
+#
+# Usage:
+#   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
+#     ansible-playbook playbooks/new-mac.yml --ask-become-pass
+#
+# Or skip the prompt:
+#   ansible-playbook playbooks/new-mac.yml -e mac_profile=personal --ask-become-pass
+
+- name: Select profile
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_prompt:
+    - name: mac_profile
+      prompt: "Profile [personal/work]"
+      private: false
+      default: personal
+  tasks:
+    - name: Validate profile
+      ansible.builtin.assert:
+        that: mac_profile in ['personal', 'work']
+        fail_msg: "Profile must be 'personal' or 'work', got: {{ mac_profile }}"
+
+- name: Configure macOS dotfiles
+  hosts: "{{ hostvars['localhost']['mac_profile'] }}-mac"
+  connection: local
+  gather_facts: true
+
+  pre_tasks:
+    - name: Assert running on the expected host
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['hostname'] == expected_hostname
+        fail_msg: >-
+          Hostname mismatch: got '{{ ansible_facts['hostname'] }}', expected '{{ expected_hostname }}'
+          for profile '{{ machine_profile }}'. Update expected_hostname in group_vars/{{ machine_profile }}/main.yml.
+        success_msg: "Hostname {{ ansible_facts['hostname'] }} matches profile {{ machine_profile }}."
+      when:
+        - expected_hostname is defined
+        - expected_hostname != "PLACEHOLDER_RUN_HOSTNAME_ON_PERSONAL_MAC"
+      tags: always
+
+    - name: Check sops binary is available
+      ansible.builtin.stat:
+        path: /opt/homebrew/bin/sops
+      register: sops_stat
+      tags: always
+
+    - name: Warn if sops is not installed (vault will not be loaded)
+      ansible.builtin.debug:
+        msg: >-
+          sops not found — secrets vault will not be loaded.
+          Run --tags install first to install sops, then re-run.
+      when:
+        - "'work' in group_names"
+        - not sops_stat.stat.exists
+      tags: always
+
+    - name: Load shared secrets from SOPS vault
+      community.sops.load_vars:
+        file: "{{ playbook_dir }}/../group_vars/all/vault.sops.yaml"
+      no_log: true
+      ignore_errors: "{{ ansible_check_mode }}"
+      when: sops_stat.stat.exists
+      tags: always
+
+    - name: Load work secrets from SOPS vault
+      community.sops.load_vars:
+        file: "{{ playbook_dir }}/../group_vars/work/vault.sops.yaml"
+      no_log: true
+      ignore_errors: "{{ ansible_check_mode }}"
+      when:
+        - "'work' in group_names"
+        - sops_stat.stat.exists
+      tags: always
+
+  roles:
+    - homebrew
+    - shell
+    - stow
+    - macos

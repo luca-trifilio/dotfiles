@@ -7,10 +7,11 @@ git_user_email: "{{ work_git_email }}"
 
 enable_docs: false
 
-# Work-only formulae (DB clients — openvpn managed by company MDM)
+# Work-only formulae
 brew_packages_extra:
   - libpq
   - mysql-client
+  - keidarcy/tap/e1s
 
 # Work-only casks (none yet — add machine-specific casks here)
 brew_casks_extra: []
