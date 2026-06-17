@@ -108,7 +108,10 @@ brew install docker
 ## Fix: Colima XDG config (`~/.colima` → `~/.config/colima`)
 
 Colima crea `~/.colima` per default, ma emette warning se `XDG_CONFIG_HOME` è impostato.
-Per allinearlo all'XDG:
+
+**Ansible lo gestisce automaticamente** (task `Migrate ~/.colima to XDG path` in `roles/macos/tasks/main.yml`).
+
+Per migrare manualmente (senza Ansible):
 
 ```bash
 colima stop

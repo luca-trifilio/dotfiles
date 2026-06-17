@@ -53,7 +53,6 @@ Manual steps non automatizzabili:
 - **Nerd Font** — installa da [nerdfonts.com](https://www.nerdfonts.com)
 - **Karabiner-Elements** — Input Monitoring + Accessibility in Impostazioni di Sistema → Privacy e Sicurezza; Driver Extension in Generale → Elementi di Login ed Estensioni
 - **tmux plugins** — dentro tmux: `prefix + I`
-- **Colima XDG** — se `~/.colima` esiste da installazione precedente: `colima stop && mv ~/.colima ~/.config/colima && colima start`
 
 ## Adding a new XDG package
 

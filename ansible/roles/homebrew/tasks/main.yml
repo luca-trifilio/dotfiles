@@ -19,8 +19,8 @@
 - name: Trust third-party taps
   ansible.builtin.command:
     cmd: "brew trust {{ brew_taps | join(' ') }}"
-  register: brew_trust_result
-  changed_when: "'already trusted' not in brew_trust_result.stdout"
+  register: homebrew_brew_trust_result
+  changed_when: "'already trusted' not in homebrew_brew_trust_result.stdout"
   failed_when: false
   tags: install
 

@@ -89,7 +89,9 @@ Tools installed via `brew_packages_dev` (pre-commit, yamllint, ansible-lint). Th
 
 - Config: `.pre-commit-config.yaml` (root), `.yamllint.yml`, `.ansible-lint`.
 - Run manually: `pre-commit run --all-files`.
-- ansible-lint profile `min`; yamllint owns YAML style separately (so no double-enforcement of stylistic rules).
+- ansible-lint profile `production` (strictest — idempotency, FQCN, role var prefixes, no command-instead-of-module). yamllint owns YAML *style* separately.
+- **Role register vars must be prefixed with the role name** (`macos_`, `homebrew_`, ...) — `var-naming[no-role-prefix]`. E.g. `register: macos_ya_pkg`, not `ya_pkg`.
+- Legitimate exceptions use a targeted `# noqa: <rule>` on the task `name:` line with a comment explaining why (see `shell/tasks/main.yml`: `latest[git]` on intentional default-branch clones, `command-instead-of-module` on `git submodule update`).
 - **Gotcha — ANSIBLE_CONFIG**: ansible-lint runs from repo root but roles live in `ansible/roles`; the pre-commit entry sets `ANSIBLE_CONFIG=ansible/ansible.cfg` so roles resolve. Without it: `syntax-check[specific]: role not found`.
 - **Gotcha — braces conflict**: yamllint must use `braces.min-spaces-inside: 0` (not 1) or ansible-lint's embedded yamllint rejects the config as incompatible. `max-spaces-inside: 1` still allows idiomatic `{{ var }}`.
 - Excludes: `*.sops.yaml`, `docs/`, `yazi/flavors/` (third-party submodules, read-only), `nvim/lazy-lock.json`.
@@ -140,11 +142,7 @@ Add `--ignore=^ansible$` to `.stowrc` to prevent stow from symlinking `ansible/`
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
      ansible-playbook playbooks/site.yml --limit personal-mac --ask-become-pass
    ```
-8. If colima was already installed and `~/.colima` exists, migrate to XDG:
-   ```bash
-   colima stop && mv ~/.colima ~/.config/colima && colima start
-   ```
-9. Manual steps (cannot be automated): Input Monitoring + Accessibility permissions for Karabiner, Driver Extension approval, `prefix + I` in tmux for TPM plugins
+8. Manual steps (cannot be automated): Input Monitoring + Accessibility permissions for Karabiner, Driver Extension approval, `prefix + I` in tmux for TPM plugins
 
 ## SOPS vault
 

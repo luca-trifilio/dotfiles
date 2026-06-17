@@ -5,12 +5,27 @@
 - name: Symlink karabiner config directory
   ansible.builtin.command:
     cmd: "ln -sfn {{ dotfiles_dir }}/karabiner {{ ansible_env.HOME }}/.config/karabiner"
-  register: karabiner_link
-  changed_when: karabiner_link.rc == 0
+  register: macos_karabiner_link
+  changed_when: macos_karabiner_link.rc == 0
   check_mode: false
   tags: macos
 
 # --- Colima ---
+- name: Check if legacy ~/.colima exists
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.colima"
+  register: macos_colima_legacy_dir
+  tags: macos
+
+- name: Migrate ~/.colima to XDG path (~/.config/colima)
+  ansible.builtin.shell: |
+    colima stop 2>/dev/null || true
+    rm -rf "{{ ansible_env.HOME }}/.config/colima"
+    mv "{{ ansible_env.HOME }}/.colima" "{{ ansible_env.HOME }}/.config/colima"
+  when: macos_colima_legacy_dir.stat.exists
+  changed_when: true
+  tags: macos
+
 - name: Ensure colima default directory exists
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.config/colima/default"
@@ -143,8 +158,8 @@
 - name: Install yazi flavors (ya pkg install)
   ansible.builtin.command:
     cmd: ya pkg install
-  register: ya_pkg
-  changed_when: "'installed' in ya_pkg.stdout | lower or 'upgraded' in ya_pkg.stdout | lower"
+  register: macos_ya_pkg
+  changed_when: "'installed' in macos_ya_pkg.stdout | lower or 'upgraded' in macos_ya_pkg.stdout | lower"
   check_mode: false
   tags: macos
 
@@ -152,7 +167,7 @@
 - name: Check whether the Obsidian docs vault is present
   ansible.builtin.stat:
     path: "{{ docs_vault_path }}"
-  register: docs_vault
+  register: macos_docs_vault
   when: enable_docs
   tags: macos
 
@@ -163,7 +178,7 @@
     mode: "0755"
   when:
     - enable_docs
-    - docs_vault.stat.exists | default(false)
+    - macos_docs_vault.stat.exists | default(false)
   tags: macos
 
 - name: Symlink docs from Obsidian vault
@@ -185,7 +200,7 @@
     - { src: "dotfiles - zsh.md", dest: "zsh.md" }
   when:
     - enable_docs
-    - docs_vault.stat.exists | default(false)
+    - macos_docs_vault.stat.exists | default(false)
   tags: macos
 
 - name: Reminder — Obsidian vault not found (docs/ skipped)
@@ -193,7 +208,7 @@
     msg: "Obsidian vault not found at {{ docs_vault_path }} — docs/ symlinks skipped. Create the vault folder, then re-run --tags macos."
   when:
     - enable_docs
-    - not (docs_vault.stat.exists | default(false))
+    - not (macos_docs_vault.stat.exists | default(false))
   tags: macos
 
 # --- Aggregated manual-steps reminder ---
