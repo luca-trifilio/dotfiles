@@ -1,0 +1,39 @@
+# Git hooks for formal/syntactic validation. Blocks the commit on failure.
+# Tools are installed via Ansible (brew_packages_dev: pre-commit, yamllint, ansible-lint),
+# so the hooks call the system binaries rather than letting pre-commit manage envs.
+#
+# Activate on a machine:  pre-commit install   (also run by the Ansible 'stow' role)
+# Run on all files:       pre-commit run --all-files
+minimum_pre_commit_version: "3.0.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # yazi/flavors/*.yazi are third-party submodules (managed by `ya pkg`), read-only.
+      - id: trailing-whitespace
+        exclude: '\.sops\.yaml$|^yazi/flavors/'
+      - id: end-of-file-fixer
+        exclude: '\.sops\.yaml$|lazy-lock\.json$|^yazi/flavors/'
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+
+  - repo: local
+    hooks:
+      - id: yamllint
+        name: yamllint
+        entry: yamllint
+        language: system
+        types: [yaml]
+        args: ["-c", ".yamllint.yml"]
+        exclude: '\.sops\.yaml$|/docs/'
+
+      - id: ansible-lint
+        name: ansible-lint
+        # ANSIBLE_CONFIG makes ansible-lint resolve roles via ansible/ansible.cfg
+        # (roles_path = roles), otherwise it can't find the roles from repo root.
+        entry: env ANSIBLE_CONFIG=ansible/ansible.cfg ansible-lint
+        language: system
+        pass_filenames: false
+        files: '^ansible/.*\.(yml|yaml)$'

@@ -13,7 +13,8 @@ ansible/
   inventory.yml            # work-mac + personal-mac (both ansible_connection: local)
   requirements.yml         # community.general >= 9.0.0, community.sops >= 1.6.0
   .sops.yaml               # age recipient for vault encryption
-  playbooks/mac.yml        # single playbook, --limit selects profile
+  playbooks/site.yml        # main playbook, --limit selects profile (hosts: target_hosts|default(all))
+  playbooks/bootstrap.yml   # interactive wrapper: prompts profile, imports site.yml
   group_vars/
     all/main.yml           # common packages, feature toggles, brew lists
     all/vault.sops.yaml    # SOPS-encrypted, BOTH profiles: ssh_homelab_hosts
@@ -34,15 +35,15 @@ ansible/
 
 # Install + stow only (no sudo required)
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/mac.yml --limit work-mac --tags install,stow
+  ansible-playbook playbooks/site.yml --limit work-mac --tags install,stow
 
 # Full run (requires sudo for kanata LaunchDaemon)
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/mac.yml --limit work-mac --ask-become-pass
+  ansible-playbook playbooks/site.yml --limit work-mac --ask-become-pass
 
 # Dry-run (check mode)
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/mac.yml --limit work-mac --check --diff
+  ansible-playbook playbooks/site.yml --limit work-mac --check --diff
 
 # Or via setup.sh wrapper (prompts for profile)
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ./setup.sh
@@ -74,6 +75,24 @@ To move a formula from common (`all`) to work-only:
 
 `brew_packages_extra` accepts full tap-prefixed names: `keidarcy/tap/e1s`.
 Leaving the tap in `brew_taps` (all) without its formula is harmless — the tap is just added, nothing installed from it.
+
+## Playbooks
+
+- `playbooks/site.yml` — main playbook. `hosts: "{{ target_hosts | default('all') }}"`. Run directly with `--limit work-mac` / `--limit personal-mac`. Used by `setup.sh`.
+- `playbooks/bootstrap.yml` — interactive wrapper for a new Mac: `vars_prompt` for the profile, then `import_playbook: site.yml` with `target_hosts` set to the chosen `<profile>-mac`. Skip the prompt with `-e mac_profile=personal`.
+
+No duplication between them — `bootstrap.yml` holds only the prompt; all pre_tasks/roles live in `site.yml`.
+
+## Linting (pre-commit + yamllint + ansible-lint)
+
+Tools installed via `brew_packages_dev` (pre-commit, yamllint, ansible-lint). The `stow` role runs `pre-commit install --install-hooks` (idempotent via `creates: .git/hooks/pre-commit`). The hook **blocks** commits on failure.
+
+- Config: `.pre-commit-config.yaml` (root), `.yamllint.yml`, `.ansible-lint`.
+- Run manually: `pre-commit run --all-files`.
+- ansible-lint profile `min`; yamllint owns YAML style separately (so no double-enforcement of stylistic rules).
+- **Gotcha — ANSIBLE_CONFIG**: ansible-lint runs from repo root but roles live in `ansible/roles`; the pre-commit entry sets `ANSIBLE_CONFIG=ansible/ansible.cfg` so roles resolve. Without it: `syntax-check[specific]: role not found`.
+- **Gotcha — braces conflict**: yamllint must use `braces.min-spaces-inside: 0` (not 1) or ansible-lint's embedded yamllint rejects the config as incompatible. `max-spaces-inside: 1` still allows idiomatic `{{ var }}`.
+- Excludes: `*.sops.yaml`, `docs/`, `yazi/flavors/` (third-party submodules, read-only), `nvim/lazy-lock.json`.
 
 ## Known gotchas
 
@@ -114,12 +133,12 @@ Add `--ignore=^ansible$` to `.stowrc` to prevent stow from symlinking `ansible/`
 6. Dry run (no sudo needed — become tasks are guarded with `when: not ansible_check_mode`):
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-     ansible-playbook playbooks/mac.yml --limit personal-mac --check --diff
+     ansible-playbook playbooks/site.yml --limit personal-mac --check --diff
    ```
 7. Full run:
    ```bash
    SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-     ansible-playbook playbooks/mac.yml --limit personal-mac --ask-become-pass
+     ansible-playbook playbooks/site.yml --limit personal-mac --ask-become-pass
    ```
 8. If colima was already installed and `~/.colima` exists, migrate to XDG:
    ```bash
@@ -131,7 +150,7 @@ Add `--ignore=^ansible$` to `.stowrc` to prevent stow from symlinking `ansible/`
 
 Encrypted with age. Key at `~/.config/sops/age/keys.txt`. Two vaults:
 
-- `group_vars/all/vault.sops.yaml` — **both profiles**. Loaded unconditionally in `mac.yml` pre_tasks (gated only on sops being present). Contains `ssh_homelab_hosts` (homelab SSH host data: internal IPs, Tailscale addresses, usernames).
+- `group_vars/all/vault.sops.yaml` — **both profiles**. Loaded unconditionally in `site.yml` pre_tasks (gated only on sops being present). Contains `ssh_homelab_hosts` (homelab SSH host data: internal IPs, Tailscale addresses, usernames).
 - `group_vars/work/vault.sops.yaml` — **work only** (`when: 'work' in group_names`). Contains `work_git_email`, `cf_access_client_id`, `cf_access_client_secret`.
 
 ```bash

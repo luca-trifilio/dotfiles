@@ -52,3 +52,14 @@
     - "'work' in group_names"
     - work_git_email is defined
   tags: stow
+
+# --- pre-commit git hooks (yamllint + ansible-lint) ---
+# Installs the hook into .git/hooks/. Idempotent via `creates`; needs the
+# pre-commit binary (brew_packages_dev) so it's skipped in check mode.
+- name: Install pre-commit git hooks
+  ansible.builtin.command:
+    cmd: pre-commit install --install-hooks
+    chdir: "{{ dotfiles_dir }}"
+    creates: "{{ dotfiles_dir }}/.git/hooks/pre-commit"
+  when: not ansible_check_mode
+  tags: stow
