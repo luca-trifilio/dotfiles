@@ -44,4 +44,4 @@ esac
 # ── Run ─────────────────────────────────────────────────────────────────────
 echo "── Running Ansible for profile: $PROFILE"
 cd "$ANSIBLE_DIR"
-exec ansible-playbook playbooks/mac.yml --limit "${PROFILE}-mac" --ask-become-pass "$@"
+exec ansible-playbook playbooks/site.yml --limit "${PROFILE}-mac" --ask-become-pass "$@"

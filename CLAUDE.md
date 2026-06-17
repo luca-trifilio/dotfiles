@@ -46,7 +46,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 
 # 4. Esegui il playbook (chiede profilo interattivamente: personal/work)
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/new-mac.yml --ask-become-pass
+  ansible-playbook playbooks/bootstrap.yml --ask-become-pass
 ```
 
 Manual steps non automatizzabili:

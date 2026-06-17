@@ -29,7 +29,7 @@ cd ansible && ansible-galaxy collection install -r requirements.yml
 
 # 4. Run (prompts for profile: personal/work)
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/new-mac.yml --ask-become-pass
+  ansible-playbook playbooks/bootstrap.yml --ask-become-pass
 ```
 
 **Manual steps** (cannot be automated):
@@ -46,11 +46,11 @@ cd ansible
 
 # Dry run
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/mac.yml --limit personal-mac --check --diff
+  ansible-playbook playbooks/site.yml --limit personal-mac --check --diff
 
 # Single role
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/mac.yml --limit personal-mac --tags stow
+  ansible-playbook playbooks/site.yml --limit personal-mac --tags stow
 ```
 
 | Tag | Role |

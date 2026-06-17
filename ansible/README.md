@@ -37,10 +37,10 @@ cd ansible
 ansible-galaxy collection install -r requirements.yml
 
 # Work Mac
-ansible-playbook playbooks/mac.yml --limit work-mac
+ansible-playbook playbooks/site.yml --limit work-mac
 
 # Personal Mac
-ansible-playbook playbooks/mac.yml --limit personal-mac
+ansible-playbook playbooks/site.yml --limit personal-mac
 ```
 
 ## Selecting a profile (`--limit`)
@@ -61,14 +61,14 @@ Each role is tagged so it can run in isolation:
 | `become` | privileged kanata LaunchDaemon / KE units |
 
 ```zsh
-ansible-playbook playbooks/mac.yml --limit work-mac --tags install
-ansible-playbook playbooks/mac.yml --limit personal-mac --tags stow,shell
+ansible-playbook playbooks/site.yml --limit work-mac --tags install
+ansible-playbook playbooks/site.yml --limit personal-mac --tags stow,shell
 ```
 
 ## Dry run (`--check`)
 
 ```zsh
-ansible-playbook playbooks/mac.yml --limit personal-mac --check --diff
+ansible-playbook playbooks/site.yml --limit personal-mac --check --diff
 ```
 
 `--check` reports per-package Homebrew status natively and uses `stow --simulate` for the
