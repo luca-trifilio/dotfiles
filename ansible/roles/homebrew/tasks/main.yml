@@ -20,7 +20,7 @@
   ansible.builtin.command:
     cmd: "brew trust {{ brew_taps | join(' ') }}"
   register: homebrew_brew_trust_result
-  changed_when: "'already trusted' not in homebrew_brew_trust_result.stdout"
+  changed_when: false
   failed_when: false
   tags: install
 
@@ -29,6 +29,8 @@
     name: "{{ item }}"
     state: present
   loop: "{{ brew_packages + brew_packages_dev + brew_packages_tap }}"
+  environment:
+    HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
   tags: install
 
 - name: Install profile-specific formulae
@@ -36,6 +38,8 @@
     name: "{{ item }}"
     state: present
   loop: "{{ brew_packages_extra }}"
+  environment:
+    HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
   when:
     - brew_packages_extra is defined
     - brew_packages_extra | length > 0
@@ -46,6 +50,8 @@
     name: "{{ item }}"
     state: present
   loop: "{{ brew_casks }}"
+  environment:
+    HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
   tags: install
 
 - name: Install profile-specific casks
@@ -53,6 +59,8 @@
     name: "{{ item }}"
     state: present
   loop: "{{ brew_casks_extra }}"
+  environment:
+    HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
   when:
     - brew_casks_extra is defined
     - brew_casks_extra | length > 0

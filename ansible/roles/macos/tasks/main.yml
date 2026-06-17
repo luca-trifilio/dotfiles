@@ -2,11 +2,18 @@
 # --- Karabiner (dir symlink — KE overwrites file symlinks, ln -sfn required) ---
 # ansible.builtin.file refuses to replace a non-empty directory; ln -sfn replaces
 # the directory entry itself without touching its contents, matching setup.sh behavior.
+- name: Check karabiner symlink state
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.config/karabiner"
+  register: macos_karabiner_stat
+  tags: macos
+
 - name: Symlink karabiner config directory
   ansible.builtin.command:
     cmd: "ln -sfn {{ dotfiles_dir }}/karabiner {{ ansible_env.HOME }}/.config/karabiner"
-  register: macos_karabiner_link
-  changed_when: macos_karabiner_link.rc == 0
+  changed_when: >-
+    not (macos_karabiner_stat.stat.islnk | default(false))
+    or macos_karabiner_stat.stat.lnk_source | default('') != dotfiles_dir + '/karabiner'
   check_mode: false
   tags: macos
 
@@ -94,6 +101,18 @@
     - macos
     - become
 
+- name: Check if kanata daemon is already loaded
+  ansible.builtin.command:
+    cmd: launchctl print system/com.lucatrifilio.kanata
+  register: macos_kanata_status
+  failed_when: false
+  changed_when: false
+  become: true
+  when: enable_kanata
+  tags:
+    - macos
+    - become
+
 - name: Bootout existing kanata daemon
   ansible.builtin.command:
     cmd: launchctl bootout system/com.lucatrifilio.kanata
@@ -114,6 +133,7 @@
   when:
     - enable_kanata
     - not ansible_check_mode
+    - macos_kanata_status.rc | default(1) != 0
   tags:
     - macos
     - become

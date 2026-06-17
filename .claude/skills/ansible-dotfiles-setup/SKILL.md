@@ -83,18 +83,19 @@ Leaving the tap in `brew_taps` (all) without its formula is harmless — the tap
 
 No duplication between them — `bootstrap.yml` holds only the prompt; all pre_tasks/roles live in `site.yml`.
 
-## Linting (pre-commit + yamllint + ansible-lint)
+## Linting (pre-commit + yamllint + ansible syntax-check)
 
 Tools installed via `brew_packages_dev` (pre-commit, yamllint, ansible-lint). The `stow` role runs `pre-commit install --install-hooks` (idempotent via `creates: .git/hooks/pre-commit`). The hook **blocks** commits on failure.
 
 - Config: `.pre-commit-config.yaml` (root), `.yamllint.yml`, `.ansible-lint`.
 - Run manually: `pre-commit run --all-files`.
 - ansible-lint profile `production` (strictest — idempotency, FQCN, role var prefixes, no command-instead-of-module). yamllint owns YAML *style* separately.
+- **ansible-lint is NOT used in the pre-commit hook.** It ships its own embedded `ansible-core` that does not share collections with the system ansible. `community.general`/`community.sops` are invisible to it, and `syntax-check[unknown-module]` is unskippable. The hook uses `ansible-playbook --syntax-check` instead — it uses the system ansible with all collections. Run `ansible-lint` manually for full linting.
 - **Role register vars must be prefixed with the role name** (`macos_`, `homebrew_`, ...) — `var-naming[no-role-prefix]`. E.g. `register: macos_ya_pkg`, not `ya_pkg`.
 - Legitimate exceptions use a targeted `# noqa: <rule>` on the task `name:` line with a comment explaining why (see `shell/tasks/main.yml`: `latest[git]` on intentional default-branch clones, `command-instead-of-module` on `git submodule update`).
-- **Gotcha — ANSIBLE_CONFIG**: ansible-lint runs from repo root but roles live in `ansible/roles`; the pre-commit entry sets `ANSIBLE_CONFIG=ansible/ansible.cfg` so roles resolve. Without it: `syntax-check[specific]: role not found`.
+- **Gotcha — ANSIBLE_CONFIG**: the pre-commit hook sets `ANSIBLE_CONFIG=ansible/ansible.cfg` so roles resolve from repo root. Without it: role not found.
 - **Gotcha — braces conflict**: yamllint must use `braces.min-spaces-inside: 0` (not 1) or ansible-lint's embedded yamllint rejects the config as incompatible. `max-spaces-inside: 1` still allows idiomatic `{{ var }}`.
-- Excludes: `*.sops.yaml`, `docs/`, `yazi/flavors/` (third-party submodules, read-only), `nvim/lazy-lock.json`.
+- Excludes: `*.sops.yaml`, `docs/`, `yazi/flavors/`, `tmux/plugins/` (third-party submodules, read-only), `nvim/lazy-lock.json`.
 
 ## Known gotchas
 
@@ -120,6 +121,18 @@ Two-task pattern for `--check` compatibility:
 
 **ansible/ must be ignored in .stowrc**
 Add `--ignore=^ansible$` to `.stowrc` to prevent stow from symlinking `ansible/` into `~/.config/`.
+
+**Orphan taps cause brew link failures**
+Taps present on the machine but not in `brew_taps` trigger Homebrew's "untrusted taps" warning, which causes `brew link` to fail for unrelated packages. All homebrew install tasks set `HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"` as an env var as a blanket guard. To audit and clean up orphan taps:
+```bash
+brew tap-info --json <tap> | python3 -c "import json,sys; d=json.load(sys.stdin); print([f for f in d[0]['formula_names']])"
+brew untap <tap>  # if nothing installed from it
+```
+
+**Idempotency patterns for tricky tasks**
+- `brew trust`: always `changed_when: false` — output varies and can't reliably detect "already trusted"
+- `ln -sfn` (karabiner dir symlink): stat the path first, then `changed_when: not stat.islnk or stat.lnk_source != expected_path`
+- `launchctl bootstrap`: check `launchctl print system/<label>` first (`rc == 0` = already loaded); add `when: macos_kanata_status.rc != 0` to skip bootstrap if running
 
 ## Bootstrapping a new Mac
 

@@ -71,10 +71,9 @@ brew_packages_dev:
   - bitwarden-cli
   - go
   - uv
-  # Repo linting (pre-commit git hooks: yamllint + ansible-lint)
+  # Repo linting (pre-commit git hooks: yamllint + ansible syntax-check)
   - pre-commit
   - yamllint
-  - ansible-lint
 
 # Third-party tap formulae (common)
 brew_packages_tap:

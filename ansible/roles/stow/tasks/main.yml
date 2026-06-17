@@ -53,7 +53,7 @@
     - work_git_email is defined
   tags: stow
 
-# --- pre-commit git hooks (yamllint + ansible-lint) ---
+# --- pre-commit git hooks (yamllint + ansible syntax-check) ---
 # Installs the hook into .git/hooks/. Idempotent via `creates`; needs the
 # pre-commit binary (brew_packages_dev) so it's skipped in check mode.
 - name: Install pre-commit git hooks
