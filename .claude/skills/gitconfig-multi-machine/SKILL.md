@@ -5,7 +5,7 @@ description: This skill should be used when the user asks to "set up work email 
 
 ## Strategy: base personal config in repo + machine-local override
 
-`gitconfig/.gitconfig` (stowed to `~/.gitconfig`) holds personal defaults.  
+`gitconfig/.gitconfig` (stowed to `~/.gitconfig`) holds personal defaults.
 `~/.gitconfig-local` (never committed, never stowed) holds machine-specific overrides.
 
 Git processes includes in order and applies **last-value-wins** for every key — so anything in `~/.gitconfig-local` silently overrides the base. The base file ends with:
@@ -120,13 +120,13 @@ git config --list --show-origin
 
 ## Common mistakes
 
-**Do NOT put work email or work-only `[includeIf]` in the shared base config.**  
+**Do NOT put work email or work-only `[includeIf]` in the shared base config.**
 If it accidentally gets committed, it affects all machines pulling the dotfiles. Revert and push immediately.
 
-**Do NOT remove the `[include] path = ~/.gitconfig-local` line from the base config.**  
+**Do NOT remove the `[include] path = ~/.gitconfig-local` line from the base config.**
 Without it, overrides on work machine have no effect.
 
-**Do NOT stow `~/.gitconfig-local`.**  
+**Do NOT stow `~/.gitconfig-local`.**
 It must remain a plain file on each machine, never tracked.
 
 **Broken symlink scenario** — if `gitconfig/` package is removed from the repo but `.stowrc` still excludes it, `~/.gitconfig` becomes a dangling symlink that silently breaks git identity. Fix:
