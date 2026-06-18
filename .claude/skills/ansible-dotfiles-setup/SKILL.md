@@ -30,24 +30,30 @@ ansible/
 
 ## Run commands
 
-```bash
-# From ansible/ directory
+`SOPS_AGE_KEY_FILE` is exported in `zsh/exports.zsh` — no need to prefix commands manually.
 
-# Install + stow only (no sudo required)
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/site.yml --limit work-mac --tags install,stow
+```bash
+# Simplest — auto-detects profile from hostname, prompts if unknown
+./setup.sh
+
+# From ansible/ directory — install + stow only (no sudo required)
+ansible-playbook playbooks/site.yml --limit work-mac --tags install,stow
 
 # Full run (requires sudo for kanata LaunchDaemon)
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/site.yml --limit work-mac --ask-become-pass
+ansible-playbook playbooks/site.yml --limit work-mac --ask-become-pass
 
 # Dry-run (check mode)
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
-  ansible-playbook playbooks/site.yml --limit work-mac --check --diff
-
-# Or via setup.sh wrapper (prompts for profile)
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt ./setup.sh
+ansible-playbook playbooks/site.yml --limit work-mac --check --diff
 ```
+
+### setup.sh hostname auto-detection
+
+`setup.sh` reads `expected_hostname` from `group_vars/{work,personal}/main.yml` and compares with the current machine's hostname (via `ansible -m setup ... filter=ansible_hostname`).
+
+- **Known hostname** → selects profile silently, no prompt
+- **Unknown hostname** → prints a warning with the known hostnames, asks `work` or `personal`, then updates `expected_hostname` in the chosen `group_vars` file automatically
+
+On a new Mac, just run `./setup.sh` once — it self-registers the hostname.
 
 ## Tags
 
@@ -101,6 +107,18 @@ Tools installed via `brew_packages_dev` (pre-commit, yamllint, ansible-lint). Th
 
 **Homebrew 4.x tap trust**
 Third-party taps (FelixKratz, nikitabobko, etc.) require explicit trust before their formulae/casks install. The `homebrew` role runs `brew trust <taps>` after `homebrew_tap`. If a new tap is added to `brew_taps`, trust is applied automatically on next run.
+`changed_when` must match `'Already trusted tap:'` (capital A) — Homebrew's actual output. Using lowercase `'already trusted'` never matches and the task always reports changed.
+
+**kanata daemon idempotency**
+Do NOT run `launchctl bootout` unconditionally before `launchctl bootstrap`. The correct pattern:
+1. `launchctl print system/com.lucatrifilio.kanata` → register result, `failed_when: false`, `changed_when: false`
+2. `launchctl bootstrap` only `when: macos_kanata_loaded.rc != 0` (daemon not loaded)
+3. Reload on plist change → handled by the `reload kanata daemon` handler (bootout + bootstrap in handlers/main.yml)
+
+Running bootout unconditionally causes always-changed because bootstrap always follows it.
+
+**karabiner symlink — always-changed is expected**
+Karabiner-Elements overwrites the `~/.config/karabiner` symlink with a real directory on every launch. Ansible correctly detects this (via `stat` + `islnk` check) and recreates the symlink each run. This `changed` is legitimate — do not suppress with `changed_when: false`.
 
 **Casks that install to /Applications/ require sudo**
 `community.general.homebrew_cask` does not support `become`. Casks like `notion-calendar` that copy `.app` to `/Applications/` need `--ask-become-pass` at the playbook level. Run the full playbook with `--ask-become-pass` rather than `--tags install` alone.

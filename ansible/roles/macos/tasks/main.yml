@@ -15,6 +15,10 @@
     not (macos_karabiner_stat.stat.islnk | default(false))
     or macos_karabiner_stat.stat.lnk_source | default('') != dotfiles_dir + '/karabiner'
   check_mode: false
+  when: >
+    not macos_karabiner_stat.stat.exists
+    or not macos_karabiner_stat.stat.islnk
+    or macos_karabiner_stat.stat.lnk_target != dotfiles_dir + '/karabiner'
   tags: macos
 
 # --- Colima ---
@@ -113,23 +117,11 @@
     - macos
     - become
 
-- name: Bootout existing kanata daemon
-  ansible.builtin.command:
-    cmd: launchctl bootout system/com.lucatrifilio.kanata
-  become: true
-  failed_when: false
-  changed_when: false
-  when: enable_kanata
-  tags:
-    - macos
-    - become
-
-- name: Bootstrap kanata daemon
+- name: Bootstrap kanata daemon (first run only)
   ansible.builtin.command:
     cmd: launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
   become: true
   changed_when: true
-  failed_when: false
   when:
     - enable_kanata
     - not ansible_check_mode
