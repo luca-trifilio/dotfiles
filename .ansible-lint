@@ -1,0 +1,12 @@
+---
+# ansible-lint config for a personal dotfiles repo.
+# 'production' is the strictest profile (idempotency, FQCN, no command-instead-of-module,
+# role var prefixes, ...). The repo already passes it, so this locks in that quality bar
+# for future commits. yamllint (.yamllint.yml) handles YAML style separately.
+profile: production
+
+exclude_paths:
+  - .git/
+  - docs/
+  - ansible/group_vars/all/vault.sops.yaml
+  - ansible/group_vars/work/vault.sops.yaml

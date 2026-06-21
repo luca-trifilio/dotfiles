@@ -1,0 +1,19 @@
+{% for h in ssh_homelab_hosts %}
+{% if h.comment is defined %}
+# {{ h.comment }}
+{% endif %}
+Host {{ h.name }}
+{% if h.hostname is defined %}
+  HostName {{ h.hostname }}
+{% endif %}
+{% if h.proxy_command is defined %}
+  ProxyCommand {{ h.proxy_command }}
+{% endif %}
+  User {{ h.user }}
+  IdentityFile {{ h.identity_file }}
+  AddKeysToAgent yes
+  UseKeychain yes
+{% if not loop.last %}
+
+{% endif %}
+{% endfor %}

@@ -1,0 +1,283 @@
+---
+# --- Karabiner (dir symlink — KE overwrites file symlinks, ln -sfn required) ---
+# ansible.builtin.file refuses to replace a non-empty directory; ln -sfn replaces
+# the directory entry itself without touching its contents, matching setup.sh behavior.
+- name: Check karabiner symlink state
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.config/karabiner"
+  register: macos_karabiner_stat
+  tags: macos
+
+- name: Symlink karabiner config directory
+  ansible.builtin.command:
+    cmd: "ln -sfn {{ dotfiles_dir }}/karabiner {{ ansible_env.HOME }}/.config/karabiner"
+  changed_when: >-
+    not (macos_karabiner_stat.stat.islnk | default(false))
+    or macos_karabiner_stat.stat.lnk_source | default('') != dotfiles_dir + '/karabiner'
+  check_mode: false
+  when: >
+    not macos_karabiner_stat.stat.exists
+    or not macos_karabiner_stat.stat.islnk
+    or macos_karabiner_stat.stat.lnk_target != dotfiles_dir + '/karabiner'
+  tags: macos
+
+# --- Colima ---
+- name: Check if legacy ~/.colima exists
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.colima"
+  register: macos_colima_legacy_dir
+  tags: macos
+
+- name: Migrate ~/.colima to XDG path (~/.config/colima)
+  ansible.builtin.shell: |
+    colima stop 2>/dev/null || true
+    rm -rf "{{ ansible_env.HOME }}/.config/colima"
+    mv "{{ ansible_env.HOME }}/.colima" "{{ ansible_env.HOME }}/.config/colima"
+  when: macos_colima_legacy_dir.stat.exists
+  changed_when: true
+  tags: macos
+
+- name: Ensure colima default directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/colima/default"
+    state: directory
+    mode: "0755"
+  tags: macos
+
+- name: Symlink colima.yaml (file symlink — runtime data coexists in dir)
+  ansible.builtin.file:
+    src: "{{ dotfiles_dir }}/colima/default/colima.yaml"
+    dest: "{{ ansible_env.HOME }}/.config/colima/default/colima.yaml"
+    state: link
+    force: true
+  tags: macos
+
+- name: Start colima service (autostart)
+  community.general.homebrew_services:
+    name: colima
+    state: present
+  tags: macos
+
+# --- SSH homelab host block (~/.ssh/config) ---
+# blockinfile manages only the marked region; the colima includes and the
+# github.com / github-personal identity blocks elsewhere in the file are untouched.
+# Disjoint Host patterns mean appending at EOF never shadows the other blocks.
+- name: Ensure ~/.ssh exists with correct perms
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: "0700"
+  when: enable_ssh_homelab
+  tags: macos
+
+- name: Manage homelab SSH host block in ~/.ssh/config
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.ssh/config"
+    block: "{{ lookup('ansible.builtin.template', 'ssh_homelab.j2') }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK — homelab"
+    create: true
+    mode: "0600"
+  when:
+    - enable_ssh_homelab
+    - ssh_homelab_hosts is defined
+  tags: macos
+
+- name: Reminder — SSH homelab block skipped (vault not loaded)
+  ansible.builtin.debug:
+    msg: "ssh_homelab_hosts not defined — SOPS vault not loaded. Run --tags install first to install sops, then re-run --tags macos."
+  when:
+    - enable_ssh_homelab
+    - ssh_homelab_hosts is not defined
+  tags: macos
+
+# --- kanata LaunchDaemon (runs as root, needs Karabiner VirtualHID driver) ---
+- name: Install kanata LaunchDaemon plist
+  ansible.builtin.template:
+    src: kanata.plist.j2
+    dest: /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+  become: true
+  when: enable_kanata
+  notify: reload kanata daemon
+  tags:
+    - macos
+    - become
+
+- name: Check if kanata daemon is already loaded
+  ansible.builtin.command:
+    cmd: launchctl print system/com.lucatrifilio.kanata
+  register: macos_kanata_status
+  failed_when: false
+  changed_when: false
+  become: true
+  when: enable_kanata
+  tags:
+    - macos
+    - become
+
+- name: Bootstrap kanata daemon (first run only)
+  ansible.builtin.command:
+    cmd: launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+  become: true
+  changed_when: true
+  when:
+    - enable_kanata
+    - not ansible_check_mode
+    - macos_kanata_status.rc | default(1) != 0
+  tags:
+    - macos
+    - become
+
+# --- Disable Karabiner-Elements launchd units (keep only VirtualHID driver) ---
+- name: Disable + bootout KE GUI agents
+  ansible.builtin.command:
+    cmd: "{{ item }}"
+  loop:
+    - "launchctl disable gui/{{ ansible_user_uid }}/org.pqrs.service.agent.Karabiner-Core-Service"
+    - "launchctl bootout gui/{{ ansible_user_uid }}/org.pqrs.service.agent.Karabiner-Core-Service"
+    - "launchctl disable gui/{{ ansible_user_uid }}/org.pqrs.service.agent.Karabiner-Core-Service-rev2"
+    - "launchctl bootout gui/{{ ansible_user_uid }}/org.pqrs.service.agent.Karabiner-Core-Service-rev2"
+    - "launchctl disable gui/{{ ansible_user_uid }}/org.pqrs.service.agent.karabiner_console_user_server"
+    - "launchctl bootout gui/{{ ansible_user_uid }}/org.pqrs.service.agent.karabiner_console_user_server"
+    - "launchctl disable gui/{{ ansible_user_uid }}/org.pqrs.service.agent.karabiner_session_monitor"
+    - "launchctl bootout gui/{{ ansible_user_uid }}/org.pqrs.service.agent.karabiner_session_monitor"
+    - "launchctl disable gui/{{ ansible_user_uid }}/org.pqrs.service.agent.Karabiner-NotificationWindow"
+    - "launchctl bootout gui/{{ ansible_user_uid }}/org.pqrs.service.agent.Karabiner-NotificationWindow"
+  failed_when: false
+  changed_when: false
+  when: enable_kanata
+  tags:
+    - macos
+    - become
+
+- name: Disable + bootout KE system daemon
+  ansible.builtin.command:
+    cmd: "{{ item }}"
+  become: true
+  loop:
+    - "launchctl disable system/org.pqrs.service.daemon.Karabiner-Core-Service"
+    - "launchctl bootout system/org.pqrs.service.daemon.Karabiner-Core-Service"
+  failed_when: false
+  changed_when: false
+  when: enable_kanata
+  tags:
+    - macos
+    - become
+
+# --- Yazi flavors ---
+- name: Install yazi flavors (ya pkg install)
+  ansible.builtin.command:
+    cmd: ya pkg install
+  register: macos_ya_pkg
+  changed_when: "'installed' in macos_ya_pkg.stdout | lower or 'upgraded' in macos_ya_pkg.stdout | lower"
+  check_mode: false
+  tags: macos
+
+# --- docs/ symlinks → Obsidian vault (personal only) ---
+- name: Check whether the Obsidian docs vault is present
+  ansible.builtin.stat:
+    path: "{{ docs_vault_path }}"
+  register: macos_docs_vault
+  when: enable_docs
+  tags: macos
+
+- name: Ensure docs/ directory exists
+  ansible.builtin.file:
+    path: "{{ dotfiles_dir }}/docs"
+    state: directory
+    mode: "0755"
+  when:
+    - enable_docs
+    - macos_docs_vault.stat.exists | default(false)
+  tags: macos
+
+- name: Symlink docs from Obsidian vault
+  ansible.builtin.file:
+    src: "{{ docs_vault_path }}/{{ item.src }}"
+    dest: "{{ dotfiles_dir }}/docs/{{ item.dest }}"
+    state: link
+    force: true
+  loop:
+    - { src: "dotfiles doc.md", dest: "index.md" }
+    - { src: "dotfiles - aerospace.md", dest: "aerospace.md" }
+    - { src: "dotfiles - atuin.md", dest: "atuin.md" }
+    - { src: "dotfiles - brew.md", dest: "brew.md" }
+    - { src: "dotfiles - fzf.md", dest: "fzf.md" }
+    - { src: "dotfiles - git.md", dest: "git.md" }
+    - { src: "dotfiles - nvim.md", dest: "nvim.md" }
+    - { src: "dotfiles - tmux.md", dest: "tmux.md" }
+    - { src: "dotfiles - yazi.md", dest: "yazi.md" }
+    - { src: "dotfiles - zsh.md", dest: "zsh.md" }
+  when:
+    - enable_docs
+    - macos_docs_vault.stat.exists | default(false)
+  tags: macos
+
+- name: Reminder — Obsidian vault not found (docs/ skipped)
+  ansible.builtin.debug:
+    msg: "Obsidian vault not found at {{ docs_vault_path }} — docs/ symlinks skipped. Create the vault folder, then re-run --tags macos."
+  when:
+    - enable_docs
+    - not (macos_docs_vault.stat.exists | default(false))
+  tags: macos
+
+# --- Obsidian vault auto-push (personal only) ---
+- name: Ensure ~/.scripts directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.scripts"
+    state: directory
+    mode: "0755"
+  when: enable_obsidian_backup
+  tags: macos
+
+- name: Deploy obsidian-git-backup.sh
+  ansible.builtin.template:
+    src: obsidian-git-backup.sh.j2
+    dest: "{{ ansible_env.HOME }}/.scripts/obsidian-git-backup.sh"
+    mode: "0755"
+  when: enable_obsidian_backup
+  tags: macos
+
+- name: Deploy obsidian-backup LaunchAgent plist
+  ansible.builtin.template:
+    src: obsidian-backup.plist.j2
+    dest: "{{ ansible_env.HOME }}/Library/LaunchAgents/com.lucatrifilio.obsidian-backup.plist"
+    mode: "0644"
+  when: enable_obsidian_backup
+  notify: reload obsidian-backup agent
+  tags: macos
+
+- name: Check if obsidian-backup LaunchAgent is loaded
+  ansible.builtin.command:
+    cmd: launchctl print gui/{{ ansible_user_uid }}/com.lucatrifilio.obsidian-backup
+  register: macos_obsidian_backup_status
+  failed_when: false
+  changed_when: false
+  when: enable_obsidian_backup
+  tags: macos
+
+- name: Bootstrap obsidian-backup LaunchAgent (first run only)
+  ansible.builtin.command:
+    cmd: >-
+      launchctl bootstrap gui/{{ ansible_user_uid }}
+      {{ ansible_env.HOME }}/Library/LaunchAgents/com.lucatrifilio.obsidian-backup.plist
+  changed_when: true
+  when:
+    - enable_obsidian_backup
+    - not ansible_check_mode
+    - macos_obsidian_backup_status.rc | default(1) != 0
+  tags: macos
+
+# --- Aggregated manual-steps reminder ---
+- name: Reminder — remaining manual steps
+  ansible.builtin.debug:
+    msg:
+      - "Nerd Font: install JetBrainsMono Nerd Font from https://www.nerdfonts.com"
+      - "Karabiner-Elements: grant Input Monitoring + Accessibility (System Settings > Privacy & Security)"
+      - "Karabiner-Elements: enable Driver Extension (System Settings > General > Login Items & Extensions > Driver Extensions)"
+      - "Note: kanata cannot bind keys until the Karabiner VirtualHID driver extension is granted."
+      - "tmux: press prefix + I inside tmux to install plugins via TPM"
+      - "Java JDK (optional, nvim-jdtls): brew install temurin"
+  tags: macos

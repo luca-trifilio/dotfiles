@@ -1,0 +1,33 @@
+---
+# Balanced yamllint config for a dotfiles repo (mixed hand-written + tool-managed YAML).
+extends: default
+
+rules:
+  # Long lines are common in shell-ish YAML and brew lists — warn, don't fail.
+  line-length:
+    max: 160
+    level: warning
+  # Not every YAML here starts with `---` (tool-generated configs); don't enforce.
+  document-start: disable
+  # Allow the common truthy values used by Ansible/CI (on/off/yes/no).
+  truthy:
+    allowed-values: ["true", "false", "yes", "no"]
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  # Allow both `{{ var }}` (idiomatic Jinja) and `{}` (empty). min=0 also keeps
+  # ansible-lint's embedded yamllint happy (it requires min-spaces-inside: 0).
+  braces:
+    max-spaces-inside: 1
+    min-spaces-inside: 0
+  # ansible-lint requires these; harmless for plain YAML too.
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+
+ignore: |
+  docs/
+  nvim/lazy-lock.json
+  **/vault.sops.yaml
+  .git/

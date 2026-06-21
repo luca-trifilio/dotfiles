@@ -1,0 +1,15 @@
+---
+machine_profile: personal
+expected_hostname: "MacBook-Pro-M4-Max-di-Luca"
+
+git_user_email: "luca.trifilio@gmail.com"
+
+enable_docs: true
+enable_obsidian_backup: true
+obsidian_vault_path: "{{ ansible_env.HOME }}/Documents/Taccuino Cerusico"
+
+# Personal-only formulae (none yet — add machine-specific packages here)
+brew_packages_extra: []
+
+# Personal-only casks (none yet — add machine-specific casks here)
+brew_casks_extra: []

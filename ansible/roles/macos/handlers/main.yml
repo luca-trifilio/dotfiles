@@ -1,0 +1,30 @@
+---
+- name: Bootout obsidian-backup agent (for reload)
+  ansible.builtin.command:
+    cmd: launchctl bootout gui/{{ ansible_user_uid }}/com.lucatrifilio.obsidian-backup
+  failed_when: false
+  changed_when: false
+  listen: reload obsidian-backup agent
+
+- name: Bootstrap obsidian-backup agent (for reload)
+  ansible.builtin.command:
+    cmd: >-
+      launchctl bootstrap gui/{{ ansible_user_uid }}
+      {{ ansible_env.HOME }}/Library/LaunchAgents/com.lucatrifilio.obsidian-backup.plist
+  changed_when: true
+  listen: reload obsidian-backup agent
+
+- name: Bootout kanata daemon (for reload)
+  ansible.builtin.command:
+    cmd: launchctl bootout system/com.lucatrifilio.kanata
+  become: true
+  failed_when: false
+  changed_when: false
+  listen: reload kanata daemon
+
+- name: Bootstrap kanata daemon (for reload)
+  ansible.builtin.command:
+    cmd: launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+  become: true
+  changed_when: true
+  listen: reload kanata daemon

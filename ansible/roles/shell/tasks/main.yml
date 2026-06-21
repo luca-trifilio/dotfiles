@@ -1,0 +1,51 @@
+---
+- name: Install Oh My Zsh
+  ansible.builtin.command:
+    cmd: >-
+      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+  tags: shell
+
+- name: Clone OMZ custom plugins  # noqa: latest[git]
+  # Intentionally track the default branch (update: false → cloned once, never updated).
+  # Pinning third-party plugins to a commit isn't worth the maintenance here.
+  ansible.builtin.git:
+    repo: "https://github.com/{{ item }}.git"
+    dest: "{{ ansible_env.HOME }}/.oh-my-zsh/custom/plugins/{{ item.split('/')[1] }}"
+    update: false
+    depth: 1
+  loop:
+    - zsh-users/zsh-syntax-highlighting
+    - zsh-users/zsh-autosuggestions
+    - zsh-users/zsh-completions
+    - Aloxaf/fzf-tab
+  tags: shell
+
+- name: Install Bun
+  ansible.builtin.command:
+    cmd: /bin/bash -c "curl -fsSL https://bun.sh/install | bash"
+    creates: "{{ ansible_env.HOME }}/.bun/bin/bun"
+  tags: shell
+
+- name: Clone TPM (tmux plugin manager)  # noqa: latest[git]
+  # Same as OMZ plugins: default branch, cloned once (update: false).
+  ansible.builtin.git:
+    repo: "https://github.com/tmux-plugins/tpm.git"
+    dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+    update: false
+    depth: 1
+  tags: shell
+
+- name: Initialize fzf-git submodule  # noqa: command-instead-of-module
+  # ansible.builtin.git clones repos; it doesn't drive `submodule update` on an
+  # already-checked-out superproject. The command module is the right tool here.
+  ansible.builtin.command:
+    cmd: git submodule update --init fzf-git.sh
+    chdir: "{{ dotfiles_dir }}"
+    creates: "{{ dotfiles_dir }}/fzf-git.sh/fzf-git.sh"
+  tags: shell
+
+- name: Reminder — install tmux plugins
+  ansible.builtin.debug:
+    msg: "Inside tmux, press prefix + I to install plugins via TPM."
+  tags: shell

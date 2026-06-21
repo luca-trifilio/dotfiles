@@ -1,60 +1,72 @@
 #!/usr/bin/env bash
-set -e
+# setup.sh — thin wrapper that drives the Ansible setup.
+#
+# Run ./bootstrap.sh first (Homebrew + base prereqs — Ansible can't install those).
+#
+# Profile selection:
+#   DOTFILES_PROFILE=work ./setup.sh        # or personal
+#   ./setup.sh                              # prompts if DOTFILES_PROFILE is unset
+#
+# Extra args are forwarded to ansible-playbook, e.g.:
+#   DOTFILES_PROFILE=personal ./setup.sh --check --diff --tags stow
+set -euo pipefail
 cd "$(dirname "$0")"
 
-# --- Homebrew packages ---
-brew bundle install --file="$(pwd)/brew/Brewfile"
+ANSIBLE_DIR="$(pwd)/ansible"
 
-# --- Symlinks ---
-stow .                                       # nvim, ghostty, tmux, … → ~/.config/
-stow --target="$HOME" zshrc                  # .zshrc → ~/
-stow --target="$HOME" gitconfig              # .gitconfig → ~/
-stow --target="$HOME" claude                 # .claude/ → ~/.claude/
-ln -sfn "$(pwd)/karabiner" "$HOME/.config/karabiner"  # dir symlink (KE overwrites file symlinks)
-mkdir -p "$HOME/.config/colima/default"
-ln -sf "$(pwd)/colima/default/colima.yaml" "$HOME/.config/colima/default/colima.yaml"  # file symlink (runtime data coexists in same dir)
-
-# --- kanata LaunchDaemon (runs as root, needs Karabiner VirtualHID driver) ---
-sed "s|__HOME__|$HOME|g" "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" \
-  | sudo tee /Library/LaunchDaemons/com.lucatrifilio.kanata.plist > /dev/null
-sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
-sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
-
-# --- Disable KE daemons/agents (keep only VirtualHID driver for kanata) ---
-for agent in \
-  org.pqrs.service.agent.Karabiner-Core-Service \
-  org.pqrs.service.agent.Karabiner-Core-Service-rev2 \
-  org.pqrs.service.agent.karabiner_console_user_server \
-  org.pqrs.service.agent.karabiner_session_monitor \
-  org.pqrs.service.agent.Karabiner-NotificationWindow; do
-  launchctl disable gui/$(id -u)/$agent 2>/dev/null || true
-  launchctl bootout gui/$(id -u)/$agent 2>/dev/null || true
-done
-sudo launchctl disable system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/dev/null || true
-sudo launchctl bootout system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/dev/null || true
-
-# --- Colima autostart ---
-brew services start colima 2>/dev/null || true
-
-# --- Yazi ---
-ya pkg install                               # yazi flavors (catppuccin-macchiato)
-
-# --- docs/ symlinks → Obsidian vault (vault must be present) ---
-VAULT="$HOME/Documents/Taccuino Cerusico/60 - Progetti/dotfiles"
-DOCS="$(pwd)/docs"
-mkdir -p "$DOCS"
-if [ -d "$VAULT" ]; then
-  ln -sf "$VAULT/dotfiles doc.md"           "$DOCS/index.md"
-  ln -sf "$VAULT/dotfiles - aerospace.md"   "$DOCS/aerospace.md"
-  ln -sf "$VAULT/dotfiles - atuin.md"       "$DOCS/atuin.md"
-  ln -sf "$VAULT/dotfiles - brew.md"        "$DOCS/brew.md"
-  ln -sf "$VAULT/dotfiles - fzf.md"         "$DOCS/fzf.md"
-  ln -sf "$VAULT/dotfiles - git.md"         "$DOCS/git.md"
-  ln -sf "$VAULT/dotfiles - nvim.md"        "$DOCS/nvim.md"
-  ln -sf "$VAULT/dotfiles - tmux.md"        "$DOCS/tmux.md"
-  ln -sf "$VAULT/dotfiles - yazi.md"        "$DOCS/yazi.md"
-  ln -sf "$VAULT/dotfiles - zsh.md"         "$DOCS/zsh.md"
-  echo "docs/ symlinks created"
-else
-  echo "⚠ Obsidian vault not found at $VAULT — skipping docs/ symlinks"
+# ── Ansible ─────────────────────────────────────────────────────────────────
+if ! command -v ansible-playbook &>/dev/null; then
+  echo "── Ansible not found — installing via pip3 (--user)"
+  pip3 install --user ansible
+  # ensure the freshly installed binaries are on PATH for this run
+  export PATH="$HOME/.local/bin:$HOME/Library/Python/$(python3 -c 'import sys;print(f"{sys.version_info.major}.{sys.version_info.minor}")')/bin:$PATH"
 fi
+
+# ── Collections ─────────────────────────────────────────────────────────────
+echo "── Installing Ansible collections"
+ansible-galaxy collection install -r "$ANSIBLE_DIR/requirements.yml"
+
+# ── Profile ─────────────────────────────────────────────────────────────────
+CURRENT_HOSTNAME="$(ansible -m setup localhost -a 'filter=ansible_hostname' -i localhost, --connection=local 2>/dev/null \
+  | grep -o '"ansible_hostname": "[^"]*"' | cut -d'"' -f4)"
+if [ -z "$CURRENT_HOSTNAME" ]; then
+  CURRENT_HOSTNAME="$(hostname -s)"
+fi
+
+WORK_HOSTNAME="$(grep 'expected_hostname' "$ANSIBLE_DIR/group_vars/work/main.yml" | cut -d'"' -f2)"
+PERSONAL_HOSTNAME="$(grep 'expected_hostname' "$ANSIBLE_DIR/group_vars/personal/main.yml" | cut -d'"' -f2)"
+
+PROFILE="${DOTFILES_PROFILE:-}"
+if [ -z "$PROFILE" ]; then
+  if [ "$CURRENT_HOSTNAME" = "$WORK_HOSTNAME" ]; then
+    PROFILE="work"
+    echo "── Detected profile: work (hostname: $CURRENT_HOSTNAME)"
+  elif [ "$CURRENT_HOSTNAME" = "$PERSONAL_HOSTNAME" ]; then
+    PROFILE="personal"
+    echo "── Detected profile: personal (hostname: $CURRENT_HOSTNAME)"
+  else
+    echo ""
+    echo "⚠ Unknown hostname: '$CURRENT_HOSTNAME'"
+    echo "  Known work:     $WORK_HOSTNAME"
+    echo "  Known personal: $PERSONAL_HOSTNAME"
+    echo ""
+    echo "Which machine profile is this?"
+    select choice in work personal; do
+      [ -n "$choice" ] && PROFILE="$choice" && break
+    done
+    # Update expected_hostname in group_vars so next run auto-detects
+    sed -i '' "s/expected_hostname: .*/expected_hostname: \"$CURRENT_HOSTNAME\"/" \
+      "$ANSIBLE_DIR/group_vars/$PROFILE/main.yml"
+    echo "── Updated expected_hostname for '$PROFILE' to '$CURRENT_HOSTNAME'"
+  fi
+fi
+
+case "$PROFILE" in
+  work|personal) ;;
+  *) echo "Invalid profile: '$PROFILE' (expected 'work' or 'personal')" >&2; exit 1 ;;
+esac
+
+# ── Run ─────────────────────────────────────────────────────────────────────
+echo "── Running Ansible for profile: $PROFILE"
+cd "$ANSIBLE_DIR"
+exec ansible-playbook playbooks/site.yml --limit "${PROFILE}-mac" --ask-become-pass "$@"

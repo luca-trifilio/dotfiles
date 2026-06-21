@@ -1,0 +1,29 @@
+#!/bin/bash
+
+VAULT_PATH="{{ obsidian_vault_path }}"
+LOG="$HOME/obsidian-git.log"
+cd "$VAULT_PATH" || exit 1
+
+git config --global credential.helper osxkeychain
+
+git add .
+
+if ! git diff --cached --quiet; then
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cambiamenti rilevati. Committing..." >> "$LOG"
+  git commit -m "Backup automatico: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG" 2>&1
+
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Force push su GitHub..." >> "$LOG"
+  if ! git push --force origin main >> "$LOG" 2>&1; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Push GitHub fallito." >> "$LOG"
+    exit 1
+  fi
+
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Force push su Forgejo..." >> "$LOG"
+  if ! git push --force forgejo main >> "$LOG" 2>&1; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARN: Push Forgejo fallito (non bloccante)." >> "$LOG"
+  fi
+
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Backup completato." >> "$LOG"
+else
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Nessun cambiamento." >> "$LOG"
+fi

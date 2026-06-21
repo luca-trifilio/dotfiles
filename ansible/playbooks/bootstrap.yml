@@ -1,0 +1,36 @@
+---
+# Interactive bootstrap for a new Mac.
+# Prompts for the profile, then imports site.yml limited to that profile's host.
+#
+# Usage:
+#   SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
+#     ansible-playbook playbooks/bootstrap.yml --ask-become-pass
+#
+# Skip the prompt:
+#   ansible-playbook playbooks/bootstrap.yml -e mac_profile=personal --ask-become-pass
+#
+# Direct (non-interactive) runs should use site.yml with --limit instead.
+
+- name: Select profile
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_prompt:
+    - name: mac_profile
+      prompt: "Profile [personal/work]"
+      private: false
+      default: personal
+  tasks:
+    - name: Validate profile
+      ansible.builtin.assert:
+        that: mac_profile in ['personal', 'work']
+        fail_msg: "Profile must be 'personal' or 'work', got: {{ mac_profile }}"
+
+    - name: Stash chosen profile for the imported play
+      ansible.builtin.set_fact:
+        chosen_profile: "{{ mac_profile }}"
+
+- name: Configure macOS dotfiles (imported)
+  ansible.builtin.import_playbook: site.yml
+  vars:
+    target_hosts: "{{ hostvars['localhost']['chosen_profile'] }}-mac"

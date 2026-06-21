@@ -1,0 +1,62 @@
+---
+# --- XDG packages (target = ~/.config, from .stowrc) ---
+- name: Simulate stow of XDG packages
+  ansible.builtin.command:
+    cmd: stow --simulate --no-folding --verbose=2 .
+    chdir: "{{ dotfiles_dir }}"
+  register: stow_xdg_simulate
+  changed_when: "'LINK:' in stow_xdg_simulate.stderr"
+  check_mode: false
+  tags: stow
+
+- name: Apply stow of XDG packages
+  ansible.builtin.command:
+    cmd: stow --no-folding .
+    chdir: "{{ dotfiles_dir }}"
+  changed_when: "'LINK:' in stow_xdg_simulate.stderr"
+  when: not ansible_check_mode
+  tags: stow
+
+# --- Home-target packages (target = $HOME) ---
+- name: Simulate stow of home-target packages
+  ansible.builtin.command:
+    cmd: "stow --simulate --no-folding --verbose=2 --target={{ ansible_env.HOME }} {{ item }}"
+    chdir: "{{ dotfiles_dir }}"
+  loop:
+    - zshrc
+    - gitconfig
+    - claude
+  register: stow_home_simulate
+  changed_when: "'LINK:' in stow_home_simulate.stderr"
+  check_mode: false
+  tags: stow
+
+- name: Apply stow of home-target packages
+  ansible.builtin.command:
+    cmd: "stow --no-folding --target={{ ansible_env.HOME }} {{ item.item }}"
+    chdir: "{{ dotfiles_dir }}"
+  loop: "{{ stow_home_simulate.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  changed_when: "'LINK:' in item.stderr"
+  when: not ansible_check_mode
+  tags: stow
+
+# --- Templated gitconfig-local (work: email; personal: Forgejo CF headers) ---
+- name: Template ~/.gitconfig-local
+  ansible.builtin.template:
+    src: gitconfig-local.j2
+    dest: "{{ ansible_env.HOME }}/.gitconfig-local"
+    mode: "0600"
+  tags: stow
+
+# --- pre-commit git hooks (yamllint + ansible syntax-check) ---
+# Installs the hook into .git/hooks/. Idempotent via `creates`; needs the
+# pre-commit binary (brew_packages_dev) so it's skipped in check mode.
+- name: Install pre-commit git hooks
+  ansible.builtin.command:
+    cmd: pre-commit install --install-hooks
+    chdir: "{{ dotfiles_dir }}"
+    creates: "{{ dotfiles_dir }}/.git/hooks/pre-commit"
+  when: not ansible_check_mode
+  tags: stow
