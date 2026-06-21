@@ -42,15 +42,12 @@
   when: not ansible_check_mode
   tags: stow
 
-# --- Templated work-only git override ---
-- name: Template ~/.gitconfig-local (work only)
+# --- Templated gitconfig-local (work: email; personal: Forgejo CF headers) ---
+- name: Template ~/.gitconfig-local
   ansible.builtin.template:
     src: gitconfig-local.j2
     dest: "{{ ansible_env.HOME }}/.gitconfig-local"
-    mode: "0644"
-  when:
-    - "'work' in group_names"
-    - work_git_email is defined
+    mode: "0600"
   tags: stow
 
 # --- pre-commit git hooks (yamllint + ansible syntax-check) ---

@@ -147,10 +147,31 @@ brew tap-info --json <tap> | python3 -c "import json,sys; d=json.load(sys.stdin)
 brew untap <tap>  # if nothing installed from it
 ```
 
+**LaunchAgent (GUI domain) idempotency**
+User LaunchAgents in `~/Library/LaunchAgents/` use `gui/UID` domain — different from kanata's `system` domain. No `become` needed.
+1. Check: `launchctl print gui/{{ ansible_user_uid }}/<label>` → `failed_when: false`, `changed_when: false`
+2. Bootstrap: `launchctl bootstrap gui/{{ ansible_user_uid }} ~/Library/LaunchAgents/<label>.plist` only `when: rc != 0`
+3. Reload handler: `launchctl bootout gui/{{ ansible_user_uid }}/<label>` → `launchctl bootstrap gui/{{ ansible_user_uid }} <plist>`
+
+Contrast with kanata: system domain requires `become: true`; GUI domain does not.
+
 **Idempotency patterns for tricky tasks**
 - `brew trust`: always `changed_when: false` — output varies and can't reliably detect "already trusted"
 - `ln -sfn` (karabiner dir symlink): stat the path first, then `changed_when: not stat.islnk or stat.lnk_source != expected_path`
 - `launchctl bootstrap`: check `launchctl print system/<label>` first (`rc == 0` = already loaded); add `when: macos_kanata_status.rc != 0` to skip bootstrap if running
+
+## Adding a personal-only automated task
+
+Pattern for features active only on personal-mac (e.g. obsidian vault auto-push):
+
+1. `group_vars/all/main.yml` — add toggle `enable_X: false` + empty-default vars
+2. `group_vars/personal/main.yml` — override `enable_X: true` + real values
+3. All tasks gated with `when: enable_X`
+4. Scripts deployed via `ansible.builtin.template` to `~/.scripts/` (mode `0755`)
+5. LaunchAgent plist via template to `~/Library/LaunchAgents/` with `notify: reload X agent`
+6. Handler: bootout gui/UID/label → bootstrap gui/UID plist (see GUI domain pattern above)
+
+Example vars for obsidian backup: `enable_obsidian_backup`, `obsidian_vault_path`, `obsidian_backup_interval` (default 1800).
 
 ## Bootstrapping a new Mac
 
@@ -188,6 +209,9 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops ansible/group_vars/all/vault.
 
 # Verify decryption
 SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops --decrypt ansible/group_vars/all/vault.sops.yaml
+
+# Insert/update a single key without opening the editor (scripting-safe)
+SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops --set '["key_name"] "value"' ansible/group_vars/all/vault.sops.yaml
 ```
 
 **Creation-rule gotcha**: `.sops.yaml` matches on `path_regex: \.sops\.yaml$` against the *input* filename. To `sops --encrypt` a new file from scratch, name it `*.sops.yaml` and use `--in-place` (or `--config ansible/.sops.yaml`). Encrypting a `/tmp/foo.yaml` fails with "no matching creation rules" and a `>` redirect will clobber the destination with empty output. Prefer `sops <file>` (edit-in-place) for existing vaults.

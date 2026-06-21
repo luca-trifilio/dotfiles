@@ -15,6 +15,11 @@ enable_kanata: true
 # github.com / github-personal identity blocks are left untouched.
 enable_ssh_homelab: true
 
+# Obsidian vault auto-push to git (personal only)
+enable_obsidian_backup: false
+obsidian_vault_path: ""
+obsidian_backup_interval: 1800
+
 # Homebrew
 homebrew_prefix: "/opt/homebrew"
 

@@ -223,6 +223,53 @@
     - not (macos_docs_vault.stat.exists | default(false))
   tags: macos
 
+# --- Obsidian vault auto-push (personal only) ---
+- name: Ensure ~/.scripts directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.scripts"
+    state: directory
+    mode: "0755"
+  when: enable_obsidian_backup
+  tags: macos
+
+- name: Deploy obsidian-git-backup.sh
+  ansible.builtin.template:
+    src: obsidian-git-backup.sh.j2
+    dest: "{{ ansible_env.HOME }}/.scripts/obsidian-git-backup.sh"
+    mode: "0755"
+  when: enable_obsidian_backup
+  tags: macos
+
+- name: Deploy obsidian-backup LaunchAgent plist
+  ansible.builtin.template:
+    src: obsidian-backup.plist.j2
+    dest: "{{ ansible_env.HOME }}/Library/LaunchAgents/com.lucatrifilio.obsidian-backup.plist"
+    mode: "0644"
+  when: enable_obsidian_backup
+  notify: reload obsidian-backup agent
+  tags: macos
+
+- name: Check if obsidian-backup LaunchAgent is loaded
+  ansible.builtin.command:
+    cmd: launchctl print gui/{{ ansible_user_uid }}/com.lucatrifilio.obsidian-backup
+  register: macos_obsidian_backup_status
+  failed_when: false
+  changed_when: false
+  when: enable_obsidian_backup
+  tags: macos
+
+- name: Bootstrap obsidian-backup LaunchAgent (first run only)
+  ansible.builtin.command:
+    cmd: >-
+      launchctl bootstrap gui/{{ ansible_user_uid }}
+      {{ ansible_env.HOME }}/Library/LaunchAgents/com.lucatrifilio.obsidian-backup.plist
+  changed_when: true
+  when:
+    - enable_obsidian_backup
+    - not ansible_check_mode
+    - macos_obsidian_backup_status.rc | default(1) != 0
+  tags: macos
+
 # --- Aggregated manual-steps reminder ---
 - name: Reminder — remaining manual steps
   ansible.builtin.debug:
