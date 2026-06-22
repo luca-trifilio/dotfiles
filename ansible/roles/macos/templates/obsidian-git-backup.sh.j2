@@ -6,24 +6,51 @@ cd "$VAULT_PATH" || exit 1
 
 git config --global credential.helper osxkeychain
 
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"; }
+
+# LiveSync è la sorgente di verità dei contenuti: ciò che è sul disco è già
+# risolto. Git è solo un backup. Strategia: committa lo stato locale, allineati
+# al remoto col rebase (in conflitto vince il locale), e non pushare mai
+# marcatori di conflitto.
+
 git add .
 
-if ! git diff --cached --quiet; then
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cambiamenti rilevati. Committing..." >> "$LOG"
-  git commit -m "Backup automatico: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG" 2>&1
+if git diff --cached --quiet; then
+  log "Nessun cambiamento."
+  exit 0
+fi
 
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Force push su GitHub..." >> "$LOG"
-  if ! git push --force origin main >> "$LOG" 2>&1; then
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Push GitHub fallito." >> "$LOG"
+log "Cambiamenti rilevati. Committing..."
+git commit -m "Backup automatico: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG" 2>&1
+
+# Allineamento al remoto: rebase con preferenza al locale (niente force-push,
+# niente perdita silenziosa). Se il rebase fallisce, abort e niente push.
+git fetch origin >> "$LOG" 2>&1
+if [ -n "$(git rev-list HEAD..origin/main 2>/dev/null)" ]; then
+  log "Remoto avanti: rebase con preferenza al locale."
+  if ! git rebase -X ours origin/main >> "$LOG" 2>&1; then
+    log "ERROR: rebase fallito, abort. Push saltato — risolvere a mano."
+    git rebase --abort >> "$LOG" 2>&1
     exit 1
   fi
-
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Force push su Forgejo..." >> "$LOG"
-  if ! git push --force forgejo main >> "$LOG" 2>&1; then
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARN: Push Forgejo fallito (non bloccante)." >> "$LOG"
-  fi
-
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Backup completato." >> "$LOG"
-else
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Nessun cambiamento." >> "$LOG"
 fi
+
+# Guardia: non pushare MAI file con marcatori di conflitto.
+if git grep -lE '^(<<<<<<< |=======$|>>>>>>> )' HEAD -- '*.md' >> "$LOG" 2>&1; then
+  log "ERROR: trovati marcatori di conflitto nei file committati. Push saltato."
+  exit 1
+fi
+
+log "Push su GitHub..."
+if ! git push origin main >> "$LOG" 2>&1; then
+  log "ERROR: Push GitHub fallito."
+  exit 1
+fi
+
+log "Push su Forgejo..."
+if ! git push forgejo main >> "$LOG" 2>&1; then
+  log "ERROR: Push Forgejo fallito."
+  exit 1
+fi
+
+log "Backup completato."

@@ -173,6 +173,8 @@ Pattern for features active only on personal-mac (e.g. obsidian vault auto-push)
 
 Example vars for obsidian backup: `enable_obsidian_backup`, `obsidian_vault_path`, `obsidian_backup_interval` (default 1800).
 
+**obsidian-git-backup.sh.j2 strategy**: LiveSync (CouchDB) is the source of truth for vault content; git is backup only, personal-mac only. The script does `commit → fetch → rebase -X ours origin/main → conflict-marker guard → push origin → push forgejo`. Both pushes are blocking (ERROR + exit 1 on failure). Never use `git push --force` (silent data loss across devices) and never `merge` without committing first (leaves `<<<<<<<` markers in notes — the original bug). The conflict-marker guard (`git grep -lE '^(<<<<<<< |=======$|>>>>>>> )' HEAD -- '*.md'`) blocks pushing corrupted notes.
+
 ## Bootstrapping a new Mac
 
 1. `git clone git@github.com:luca-trifilio/dotfiles.git ~/Progetti/dotfiles`
