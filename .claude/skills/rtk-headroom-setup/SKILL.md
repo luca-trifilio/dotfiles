@@ -41,20 +41,47 @@ without this entry Claude Code never calls the wrapper, even if the file exists.
 ```
 
 `settings.json` is **not stowable** — Claude Code rewrites it continuously (permissions, plugins,
-model, etc.). Add this block manually on a fresh machine, or run the Ansible task in
-`roles/shell/tasks/main.yml` that patches it (see below).
-
-The Ansible task uses `community.general.json_patch` to insert the `hooks` key idempotently so the
-rest of the file is left untouched. After running `--tags shell` on a new machine, the hook is live.
+model, etc.). The Ansible `shell` role patches it automatically via a `jq`-based shell task
+(idempotent: checks for `rtk-rewrite.sh` in the existing PreToolUse array before patching).
+After running `--tags shell` on a new machine, the hook is live.
 
 ## The rtk hook — never run `rtk init -g`
 
 The hook at `~/.claude/hooks/rtk-rewrite.sh` is **versioned in the `claude` stow package**
-(`claude/.claude/hooks/rtk-rewrite.sh`), not created by `rtk init`. It injects Homebrew's bin into
-PATH before `exec rtk hook claude`, because Claude Code runs hooks with a restricted PATH
-(`/usr/bin:/bin:…`) that omits Homebrew — a bare `rtk` fails silently (chopratejas/headroom#487).
+(`claude/.claude/hooks/rtk-rewrite.sh`). It:
 
-Do NOT run `rtk init -g`: it overwrites the wrapper with a bare hook that hits exactly that bug.
+1. Injects `PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"` — Claude Code runs hooks with a
+   restricted PATH (`/usr/bin:/bin:…`) that omits Homebrew (chopratejas/headroom#487).
+2. Checks for `jq` and `rtk` (exits 0 silently if missing).
+3. Guards against rtk < 0.23.0 (when `rtk rewrite` was added).
+4. Calls `rtk rewrite "$CMD"` and returns a JSON `updatedInput` block if a rewrite applies.
+
+Do NOT run `rtk init -g` or `rtk init -g --auto-patch`: both overwrite the hook, losing the
+PATH fix. `--auto-patch` also resets the sha256 hash (see next section).
+
+## rtk sha256 integrity check
+
+rtk verifies `~/.claude/hooks/.rtk-hook.sha256` on **every run** — a hash mismatch blocks all
+rtk commands with an error. This file must stay in sync with the hook content.
+
+**Automatic**: the `stow` role recomputes the hash after every stow run:
+```yaml
+- name: Update rtk hook integrity hash
+  ansible.builtin.shell:
+    cmd: >
+      shasum -a 256 "~/.claude/hooks/rtk-rewrite.sh" |
+      awk '{print $1 "  rtk-rewrite.sh"}' > "~/.claude/hooks/.rtk-hook.sha256"
+```
+
+**Manual fix** (if hash mismatch outside Ansible):
+```zsh
+shasum -a 256 ~/.claude/hooks/rtk-rewrite.sh \
+  | awk '{print $1 "  rtk-rewrite.sh"}' \
+  > ~/.claude/hooks/.rtk-hook.sha256
+rtk verify   # should print PASS
+```
+
+The `.rtk-hook.sha256` file is a real file (not stowed) — rtk writes to it directly.
 
 ## `rtk gain` "No hook installed" is a FALSE POSITIVE
 
@@ -74,6 +101,7 @@ alias hrclaude='headroom wrap claude --no-rtk'   # --no-rtk stops headroom re-ru
 
 ```zsh
 rtk --version                      # homebrew-core build (not a name-collision rtk)
+rtk verify                         # PASS + sha256 hash
 rtk gain                           # non-zero command count → hook active
 uv tool list | grep headroom       # headroom-ai installed
 # inside a `hrclaude` session:
@@ -88,8 +116,13 @@ instead of the full content. Retrieve the original with the headroom MCP `headro
 passing that hash. The same applies to `Read` calls — a stale-read error may actually be compressed
 output that was never seen in full; retrieve by hash.
 
+Note: headroom hashes **expire between sessions** — retrieve while in the same session.
+
 ## Notes
 
 - `rtk` is in homebrew-core (no custom tap). Watch for a name collision with `reachingforthejack/rtk`
   (Rust Type Kit) — verify with `which rtk` → `/opt/homebrew/bin/rtk` and `rtk gain` working.
 - The `bootstrap.sh` / Ansible `shell` role installs `headroom-ai` via `uv` (uv is in `brew_packages_dev`).
+- **`.stowrc` gotcha**: `--ignore=^\.claude$` would silently block stow from deploying the `.claude/`
+  directory inside the `claude` package. Only `--ignore=^claude$` is needed (excludes the package
+  from `stow .`). If the hook symlink is never created, check `.stowrc` for this pattern.
