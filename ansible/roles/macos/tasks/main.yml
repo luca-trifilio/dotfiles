@@ -270,6 +270,19 @@
     - macos_obsidian_backup_status.rc | default(1) != 0
   tags: macos
 
+# --- Tailscale (standalone macsys app — GUI installed via tailscale-app cask) ---
+# The app + its system extension start at login and reconnect automatically; the
+# CLI (/usr/local/bin/tailscale) talks to the same extension. We only persist the
+# start-at-login preference — the extension itself is managed by macOS, not launchd.
+- name: Enable Tailscale start-at-login
+  community.general.osx_defaults:
+    domain: io.tailscale.ipn.macsys
+    key: TailscaleStartOnLogin
+    type: bool
+    value: true
+    state: present
+  tags: macos
+
 # --- Aggregated manual-steps reminder ---
 - name: Reminder — remaining manual steps
   ansible.builtin.debug:
@@ -278,6 +291,8 @@
       - "Karabiner-Elements: grant Input Monitoring + Accessibility (System Settings > Privacy & Security)"
       - "Karabiner-Elements: enable Driver Extension (System Settings > General > Login Items & Extensions > Driver Extensions)"
       - "Note: kanata cannot bind keys until the Karabiner VirtualHID driver extension is granted."
+      - "Tailscale: approve the system extension on first install (System Settings > Privacy & Security), then sign in via the menubar app once."
+      - "Tailscale: if the GUI shows 'Invalid response from local service', quit and reopen the app (the extension keeps the connection up, no downtime)."
       - "tmux: press prefix + I inside tmux to install plugins via TPM"
       - "Java JDK (optional, nvim-jdtls): brew install temurin"
   tags: macos
