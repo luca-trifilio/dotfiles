@@ -45,6 +45,15 @@
 [credential]
 	helper = osxkeychain
 
+# Personal repos: force SSH via the `github-personal` alias so auth uses the
+# personal key regardless of the active `gh` account (the HTTPS credential
+# helper above would otherwise pick the work account on a work machine).
+# Requires the `Host github-personal` block in ~/.ssh/config — managed by the
+# Ansible macos role (ssh_github_personal_key var).
+[url "git@github-personal:luca-trifilio/"]
+	insteadOf = https://github.com/luca-trifilio/
+	insteadOf = git@github.com:luca-trifilio/
+
 [include]
 	path = ~/.config/git/catppuccin.gitconfig
 

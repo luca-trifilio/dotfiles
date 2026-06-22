@@ -15,6 +15,13 @@ enable_kanata: true
 # github.com / github-personal identity blocks are left untouched.
 enable_ssh_homelab: true
 
+# Manage the `Host github-personal` SSH alias in ~/.ssh/config (both machines).
+# Pairs with the url.insteadOf rule in gitconfig/.gitconfig so personal repos
+# push over SSH with this key regardless of the active `gh` account. The key
+# itself is private and never versioned — deposit it manually (e.g. via Bitwarden).
+enable_ssh_github_personal: true
+ssh_github_personal_key: "~/.ssh/id_ed25519_personal_new"
+
 # Obsidian vault auto-push to git (personal only)
 enable_obsidian_backup: false
 obsidian_vault_path: ""

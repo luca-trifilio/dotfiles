@@ -90,6 +90,20 @@
     - ssh_homelab_hosts is not defined
   tags: macos
 
+# --- github-personal SSH host block (~/.ssh/config) ---
+# Disjoint marker + Host pattern from the homelab block above, so appending at
+# EOF never shadows it. Pairs with the url.insteadOf rule in gitconfig/.gitconfig.
+# The key file referenced here is private — deposit it manually (e.g. Bitwarden).
+- name: Manage github-personal SSH host block in ~/.ssh/config
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.ssh/config"
+    block: "{{ lookup('ansible.builtin.template', 'ssh_github_personal.j2') }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK — github-personal"
+    create: true
+    mode: "0600"
+  when: enable_ssh_github_personal
+  tags: macos
+
 # --- kanata LaunchDaemon (runs as root, needs Karabiner VirtualHID driver) ---
 - name: Install kanata LaunchDaemon plist
   ansible.builtin.template:
