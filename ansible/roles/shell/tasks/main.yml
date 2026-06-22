@@ -62,7 +62,8 @@
 - name: Reminder — Claude Code token tooling (rtk + headroom)
   ansible.builtin.debug:
     msg:
-      - "rtk hook is installed by stowing the `claude` package (~/.claude/hooks/rtk-wrapper.sh)."
+      - "rtk hook script ships via the `claude` stow package (~/.claude/hooks/rtk-wrapper.sh)."
       - "Do NOT run `rtk init -g` — it overwrites the wrapper with a bare hook that fails under Claude Code's restricted PATH (headroom#487)."
+      - "MANUAL STEP: add the hooks.PreToolUse block to ~/.claude/settings.json (see rtk-headroom-setup skill)."
       - "Launch Claude through the proxy with the `hrclaude` alias (headroom wrap claude --no-rtk)."
   tags: shell

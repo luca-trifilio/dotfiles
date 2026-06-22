@@ -29,4 +29,4 @@ source ~/.config/zsh/fzf.zsh
 # PreToolUse hook that fails silently under Claude Code's restricted PATH —
 # headroom#487). The rtk hook is registered manually via ~/.claude/hooks/rtk-wrapper.sh,
 # which injects Homebrew's bin before exec'ing rtk. See headroom integration guide (#proxy).
-alias hrclaude='headroom wrap claude --no-rtk'
+alias hrclaude='HEADROOM_OUTPUT_SHAPER=1 headroom wrap claude --no-rtk'

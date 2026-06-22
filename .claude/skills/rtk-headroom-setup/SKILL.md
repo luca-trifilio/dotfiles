@@ -19,6 +19,34 @@ Both layers land on every host because rtk is in the `all` group, the headroom t
 untagged-by-profile `shell` role, and the hook ships in the `claude` stow package. Nothing needs
 to be added to `group_vars/work` or `group_vars/personal`.
 
+## Hook registration in `~/.claude/settings.json`
+
+The hook script must be **declared** in `~/.claude/settings.json` under `hooks.PreToolUse` —
+without this entry Claude Code never calls the wrapper, even if the file exists.
+
+```json
+"hooks": {
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "~/.claude/hooks/rtk-wrapper.sh"
+        }
+      ]
+    }
+  ]
+}
+```
+
+`settings.json` is **not stowable** — Claude Code rewrites it continuously (permissions, plugins,
+model, etc.). Add this block manually on a fresh machine, or run the Ansible task in
+`roles/shell/tasks/main.yml` that patches it (see below).
+
+The Ansible task uses `community.general.json_patch` to insert the `hooks` key idempotently so the
+rest of the file is left untouched. After running `--tags shell` on a new machine, the hook is live.
+
 ## The rtk hook — never run `rtk init -g`
 
 The hook at `~/.claude/hooks/rtk-wrapper.sh` is **versioned in the `claude` stow package**
