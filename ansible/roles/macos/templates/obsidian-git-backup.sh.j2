@@ -4,8 +4,6 @@ VAULT_PATH="{{ obsidian_vault_path }}"
 LOG="$HOME/obsidian-git.log"
 cd "$VAULT_PATH" || exit 1
 
-git config --global credential.helper osxkeychain
-
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"; }
 
 # LiveSync è la sorgente di verità dei contenuti: ciò che è sul disco è già

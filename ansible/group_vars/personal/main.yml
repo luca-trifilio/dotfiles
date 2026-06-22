@@ -13,3 +13,6 @@ brew_packages_extra: []
 
 # Personal-only casks (none yet — add machine-specific casks here)
 brew_casks_extra: []
+
+# Personal mac has a single ed25519 key; work mac uses id_ed25519_personal_new (default in all/)
+ssh_github_personal_key: "~/.ssh/id_ed25519"
