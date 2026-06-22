@@ -45,7 +45,24 @@
     creates: "{{ dotfiles_dir }}/fzf-git.sh/fzf-git.sh"
   tags: shell
 
+- name: Install headroom (LLM proxy) as a uv tool  # noqa: command-instead-of-module
+  # headroom ships only on PyPI, not Homebrew, so it's installed via uv (uv is in
+  # brew_packages_dev). Pairs with rtk: rtk rewrites commands, headroom compresses
+  # the API payloads. `uv tool install` is idempotent; `creates` skips reinstalls.
+  ansible.builtin.command:
+    cmd: uv tool install headroom-ai
+    creates: "{{ ansible_env.HOME }}/.local/share/uv/tools/headroom-ai"
+  tags: shell
+
 - name: Reminder — install tmux plugins
   ansible.builtin.debug:
     msg: "Inside tmux, press prefix + I to install plugins via TPM."
+  tags: shell
+
+- name: Reminder — Claude Code token tooling (rtk + headroom)
+  ansible.builtin.debug:
+    msg:
+      - "rtk hook is installed by stowing the `claude` package (~/.claude/hooks/rtk-wrapper.sh)."
+      - "Do NOT run `rtk init -g` — it overwrites the wrapper with a bare hook that fails under Claude Code's restricted PATH (headroom#487)."
+      - "Launch Claude through the proxy with the `hrclaude` alias (headroom wrap claude --no-rtk)."
   tags: shell

@@ -58,6 +58,8 @@ brew_packages:
   - opencode
   - poppler
   - ripgrep
+  # CLI proxy that rewrites dev commands to cut token usage (see ansible/README.md → Claude Code).
+  - rtk
   - sops
   - age
   - sevenzip

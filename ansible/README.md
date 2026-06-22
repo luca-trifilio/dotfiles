@@ -92,6 +92,58 @@ only for the work group (`no_log: true`).
 `~/.gitconfig-local` is **generated** from these vault values by the stow role and is always
 overwritten — do not edit it by hand, edit the vault instead.
 
+## Claude Code token tooling (rtk + headroom)
+
+Two cooperating layers cut Claude Code token usage. Both are defined in **shared** scope
+(`group_vars/all` + the `shell` role + the `claude` stow package), so they land on **both the
+work and personal profiles** with no per-profile duplication.
+
+| Layer | What it does | Installed by |
+|---|---|---|
+| **rtk** | Rewrites dev commands (`grep`→`rtk grep`, `ls`→`rtk ls`, …) so their output is token-compact, via a Claude Code `PreToolUse` hook. | `brew_packages` (homebrew-core) + the `claude` stow package (hook file) |
+| **headroom** | Local proxy on `127.0.0.1:8787` that compresses the API request payloads themselves. `headroom wrap` sets `ANTHROPIC_BASE_URL` and launches Claude through it — no env var is committed. | `uv tool install headroom-ai` (shell role) |
+
+Pipeline: `command → rtk (compact output) → API request → headroom (compress payload) → Anthropic`.
+
+> **Why both profiles get it for free:** `rtk` is in `group_vars/all/main.yml:brew_packages`
+> (the `all` group covers every host), the headroom `uv tool install` task is in the untagged-by-profile
+> `shell` role, and the hook ships in the `claude` stow package — all three apply on both
+> `work-mac` and `personal-mac`. Nothing needs to be added to `group_vars/work` or `group_vars/personal`.
+
+### The rtk hook (and why not `rtk init`)
+
+The hook lives at `~/.claude/hooks/rtk-wrapper.sh`, **versioned in the `claude` stow package**
+(`claude/.claude/hooks/rtk-wrapper.sh`) and symlinked into place by the stow role. It injects
+Homebrew's `bin` into `PATH` before `exec rtk hook claude`, because Claude Code runs hooks with
+a restricted `PATH` (`/usr/bin:/bin:…`) that omits Homebrew — a bare `rtk` is not found and the
+hook fails silently (chopratejas/headroom#487).
+
+> **Do NOT run `rtk init -g`.** It overwrites the wrapper with a bare `rtk hook claude` hook
+> that hits exactly that PATH bug. `rtk gain` will warn `No hook installed` — this is a **false
+> positive**: it only recognizes its own `rtk init` signature, not the custom wrapper. The hook
+> is working as long as `rtk gain` shows a non-zero command count.
+
+### Launching through the proxy
+
+Use the `hrclaude` alias (defined in `zshrc/.zshrc`):
+
+```zsh
+alias hrclaude='headroom wrap claude --no-rtk'
+```
+
+`--no-rtk` stops `headroom wrap` from re-running `rtk init` and clobbering the manual hook.
+
+### Verifying (works the same on either machine)
+
+```zsh
+rtk --version                      # binary present (homebrew-core, not a name-collision build)
+rtk gain                           # non-zero command count → hook is active
+uv tool list | grep headroom       # headroom-ai installed
+# Then, inside a `hrclaude` session:
+lsof -nP -iTCP:8787 -sTCP:LISTEN   # headroom proxy listening
+echo "$ANTHROPIC_BASE_URL"         # → http://127.0.0.1:8787 (set by `headroom wrap`)
+```
+
 ## Rollback to Stow-only
 
 The Ansible layer is additive: the underlying engine is still Stow + Brewfile, so reverting
