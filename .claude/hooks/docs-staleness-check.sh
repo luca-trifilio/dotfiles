@@ -23,6 +23,7 @@ while IFS= read -r f; do
   [ -z "$f" ] && continue
   case "$f" in
     aerospace/*)                    add aerospace ;;
+    ansible/*)                      add ansible ;;
     atuin/*)                        add atuin ;;
     brew/Brewfile)                  add brew ;;
     zsh/fzf.zsh|bat/*|fzf-git.sh/*) add fzf ;;
