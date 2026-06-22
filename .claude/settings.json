@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/docs-staleness-check.sh",
+            "command": "/Users/lucatrifilio/Progetti/dotfiles/.claude/hooks/docs-staleness-check.sh",
             "timeout": 10
           }
         ]
