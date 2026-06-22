@@ -14,25 +14,28 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 changed="$(git show --name-only --pretty=format: HEAD 2>/dev/null | grep -v '^docs/' | grep -v '^$' || true)"
 [ -z "$changed" ] && exit 0
 
-declare -A hits   # doc -> 1
+# Space-delimited dedup set of docs to update (no associative arrays — macOS
+# ships bash 3.2, where `declare -A` + empty-expansion under `set -u` breaks).
+hits=" "
+add() { case "$hits" in *" $1 "*) ;; *) hits="$hits$1 " ;; esac; }
 
 while IFS= read -r f; do
   [ -z "$f" ] && continue
   case "$f" in
-    aerospace/*)                    hits[aerospace]=1 ;;
-    atuin/*)                        hits[atuin]=1 ;;
-    brew/Brewfile)                  hits[brew]=1 ;;
-    zsh/fzf.zsh|bat/*|fzf-git.sh/*) hits[fzf]=1 ;;
-    gitconfig/*|git/*)              hits[git]=1 ;;
-    nvim/*)                         hits[nvim]=1 ;;
-    tmux/*)                         hits[tmux]=1 ;;
-    yazi/*)                         hits[yazi]=1 ;;
-    setup.sh|.stowrc|CLAUDE.md)     hits[index]=1 ;;
-    zsh/*)                          hits[zsh]=1 ;;   # after fzf.zsh so it doesn't shadow
+    aerospace/*)                    add aerospace ;;
+    atuin/*)                        add atuin ;;
+    brew/Brewfile)                  add brew ;;
+    zsh/fzf.zsh|bat/*|fzf-git.sh/*) add fzf ;;
+    gitconfig/*|git/*)              add git ;;
+    nvim/*)                         add nvim ;;
+    tmux/*)                         add tmux ;;
+    yazi/*)                         add yazi ;;
+    setup.sh|.stowrc|CLAUDE.md)     add index ;;
+    zsh/*)                          add zsh ;;   # after fzf.zsh so it doesn't shadow
   esac
 done <<< "$changed"
 
-[ ${#hits[@]} -eq 0 ] && exit 0
+docs="$(echo "$hits" | xargs)"   # trim
+[ -z "$docs" ] && exit 0
 
-docs="$(printf '%s ' "${!hits[@]}")"
-printf '{"systemMessage": "📝 Config modificati senza aggiornare la doc: %s. Lancia /dotfiles-docs-update per riallineare il vault Obsidian."}\n' "${docs% }"
+printf '{"systemMessage": "📝 Config modificati senza aggiornare la doc: %s. Lancia /dotfiles-docs-update per riallineare il vault Obsidian."}\n' "$docs"
