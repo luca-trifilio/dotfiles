@@ -10,7 +10,7 @@ Two cooperating layers cut Claude Code token usage. Installed and wired by Ansib
 
 | Layer | Role | Lives in repo at |
 |---|---|---|
-| **rtk** | Rewrites dev commands so output is token-compact, via a `PreToolUse` hook | `ansible/group_vars/all/main.yml` → `brew_packages` (homebrew-core) + `claude/.claude/hooks/rtk-wrapper.sh` (stow) |
+| **rtk** | Rewrites dev commands so output is token-compact, via a `PreToolUse` hook | `ansible/group_vars/all/main.yml` → `brew_packages` (homebrew-core) + `claude/.claude/hooks/rtk-rewrite.sh` (stow) |
 | **headroom** | Local proxy `127.0.0.1:8787`, compresses API payloads | `uv tool install headroom-ai` in `ansible/roles/shell/tasks/main.yml` |
 
 Pipeline: `command → rtk (compact output) → request → headroom (compress payload) → Anthropic`.
@@ -32,7 +32,7 @@ without this entry Claude Code never calls the wrapper, even if the file exists.
       "hooks": [
         {
           "type": "command",
-          "command": "~/.claude/hooks/rtk-wrapper.sh"
+          "command": "~/.claude/hooks/rtk-rewrite.sh"
         }
       ]
     }
@@ -49,8 +49,8 @@ rest of the file is left untouched. After running `--tags shell` on a new machin
 
 ## The rtk hook — never run `rtk init -g`
 
-The hook at `~/.claude/hooks/rtk-wrapper.sh` is **versioned in the `claude` stow package**
-(`claude/.claude/hooks/rtk-wrapper.sh`), not created by `rtk init`. It injects Homebrew's bin into
+The hook at `~/.claude/hooks/rtk-rewrite.sh` is **versioned in the `claude` stow package**
+(`claude/.claude/hooks/rtk-rewrite.sh`), not created by `rtk init`. It injects Homebrew's bin into
 PATH before `exec rtk hook claude`, because Claude Code runs hooks with a restricted PATH
 (`/usr/bin:/bin:…`) that omits Homebrew — a bare `rtk` fails silently (chopratejas/headroom#487).
 

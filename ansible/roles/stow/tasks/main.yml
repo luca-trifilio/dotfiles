@@ -42,6 +42,17 @@
   when: not ansible_check_mode
   tags: stow
 
+# --- Update rtk hook integrity hash (rtk verifies sha256 of its hook on every run) ---
+- name: Update rtk hook integrity hash
+  ansible.builtin.shell:
+    cmd: >
+      shasum -a 256 "{{ ansible_env.HOME }}/.claude/hooks/rtk-rewrite.sh" |
+      awk '{print $1 "  rtk-rewrite.sh"}' >
+      "{{ ansible_env.HOME }}/.claude/hooks/.rtk-hook.sha256"
+  when: not ansible_check_mode
+  changed_when: false
+  tags: stow
+
 # --- Templated gitconfig-local (work: email; personal: Forgejo CF headers) ---
 - name: Template ~/.gitconfig-local
   ansible.builtin.template:

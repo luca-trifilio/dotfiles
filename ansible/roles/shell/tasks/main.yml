@@ -59,11 +59,42 @@
     msg: "Inside tmux, press prefix + I to install plugins via TPM."
   tags: shell
 
+- name: Stat rtk-rewrite.sh
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.claude/hooks/rtk-rewrite.sh"
+  register: rtk_hook_stat
+  tags: shell
+
+- name: Remove rtk-rewrite.sh if real file (stow will create symlink)
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.claude/hooks/rtk-rewrite.sh"
+    state: absent
+  when: rtk_hook_stat.stat.exists and not rtk_hook_stat.stat.islnk
+  tags: shell
+
+- name: Check if rtk PreToolUse hook in settings.json
+  ansible.builtin.command:
+    cmd: >
+      jq -e '[.hooks.PreToolUse[]?.hooks[]?.command // ""] | any(contains("rtk-rewrite.sh"))'
+      "{{ ansible_env.HOME }}/.claude/settings.json"
+  register: rtk_settings_check
+  failed_when: false
+  changed_when: false
+  tags: shell
+
+- name: Patch ~/.claude/settings.json — PreToolUse rtk hook
+  ansible.builtin.shell:  # noqa: command-instead-of-module
+    cmd: |
+      tmp=$(mktemp)
+      jq '.hooks.PreToolUse = [{"matcher": "Bash", "hooks": [{"type": "command", "command": "{{ ansible_env.HOME }}/.claude/hooks/rtk-rewrite.sh"}]}]' \
+        "{{ ansible_env.HOME }}/.claude/settings.json" > "$tmp" && mv "$tmp" "{{ ansible_env.HOME }}/.claude/settings.json"
+  when: rtk_settings_check.rc != 0
+  tags: shell
+
 - name: Reminder — Claude Code token tooling (rtk + headroom)
   ansible.builtin.debug:
     msg:
-      - "rtk hook script ships via the `claude` stow package (~/.claude/hooks/rtk-wrapper.sh)."
-      - "Do NOT run `rtk init -g` — it overwrites the wrapper with a bare hook that fails under Claude Code's restricted PATH (headroom#487)."
-      - "MANUAL STEP: add the hooks.PreToolUse block to ~/.claude/settings.json (see rtk-headroom-setup skill)."
+      - "rtk hook ships via the `claude` stow package (~/.claude/hooks/rtk-rewrite.sh)."
+      - "Do NOT run `rtk init -g` — it overwrites the hook with a bare script missing the Homebrew PATH fix (headroom#487)."
       - "Launch Claude through the proxy with the `hrclaude` alias (headroom wrap claude --no-rtk)."
   tags: shell

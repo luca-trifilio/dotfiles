@@ -7,7 +7,6 @@
 --ignore=^zshrc$
 --ignore=^gitconfig$
 --ignore=^claude$
---ignore=^\.claude$
 --ignore=^karabiner$
 --ignore=^brew$
 --ignore=bootstrap.sh
