@@ -23,10 +23,3 @@ source ~/.config/zsh/zoxide.zsh
 source ~/.config/zsh/fzf.zsh
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
-
-# Headroom + RTK: launch Claude Code through the proxy WITHOUT letting
-# `headroom wrap` re-run `rtk init` (which re-adds a bare `rtk hook claude`
-# PreToolUse hook that fails silently under Claude Code's restricted PATH —
-# headroom#487). The rtk hook is registered manually via ~/.claude/hooks/rtk-wrapper.sh,
-# which injects Homebrew's bin before exec'ing rtk. See headroom integration guide (#proxy).
-alias hrclaude='HEADROOM_OUTPUT_SHAPER=1 headroom wrap claude --no-rtk'

@@ -42,23 +42,21 @@
   when: not ansible_check_mode
   tags: stow
 
-# --- Update rtk hook integrity hash (rtk verifies sha256 of its hook on every run) ---
-- name: Update rtk hook integrity hash
-  ansible.builtin.shell:
-    cmd: >
-      shasum -a 256 "{{ ansible_env.HOME }}/.claude/hooks/rtk-rewrite.sh" |
-      awk '{print $1 "  rtk-rewrite.sh"}' >
-      "{{ ansible_env.HOME }}/.claude/hooks/.rtk-hook.sha256"
-  when: not ansible_check_mode
-  changed_when: false
-  tags: stow
-
 # --- Templated gitconfig-local (work: email; personal: Forgejo CF headers) ---
 - name: Template ~/.gitconfig-local
   ansible.builtin.template:
     src: gitconfig-local.j2
     dest: "{{ ansible_env.HOME }}/.gitconfig-local"
     mode: "0600"
+  tags: stow
+
+# --- git hooks path (auto-apply ansible after git pull via git-hooks/) ---
+- name: Set core.hooksPath for dotfiles repo
+  community.general.git_config:
+    name: core.hooksPath
+    value: git-hooks
+    scope: local
+    repo: "{{ dotfiles_dir }}"
   tags: stow
 
 # --- pre-commit git hooks (yamllint + ansible syntax-check) ---

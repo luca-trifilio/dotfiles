@@ -9,6 +9,19 @@ alias python=python3
 alias pip=pip3
 alias cdd='cd ~'
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
+
+function dotfiles-apply() {
+  local dotfiles_dir="$HOME/Progetti/dotfiles"
+  case "$(hostname -s)" in
+    0876-Pro-14)                 local limit=work-mac ;;
+    MacBook-Pro-M4-Max-di-Luca) local limit=personal-mac ;;
+    *) echo "dotfiles-apply: unknown hostname"; return 1 ;;
+  esac
+  SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt" \
+    ansible-playbook "$dotfiles_dir/ansible/playbooks/site.yml" \
+    --limit "$limit" \
+    --ask-become-pass
+}
 alias kns='kubens'
 alias kx='kubectx'
 
