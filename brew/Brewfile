@@ -1,5 +1,4 @@
 tap "FelixKratz/formulae"
-tap "gromgit/brewtils"
 tap "keidarcy/tap"
 tap "nikitabobko/tap"
 
@@ -39,6 +38,7 @@ brew "age"
 brew "sevenzip"
 brew "starship"
 brew "stow"
+brew "taproom"
 brew "tmux"
 brew "tree"
 brew "yazi"
@@ -56,7 +56,6 @@ brew "uv"
 
 # Third-party taps
 brew "FelixKratz/formulae/borders"
-brew "gromgit/brewtils/taproom"
 brew "keidarcy/tap/e1s"
 
 # Casks
