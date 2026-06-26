@@ -6,10 +6,14 @@ cd "$VAULT_PATH" || exit 1
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"; }
 
-# LiveSync è la sorgente di verità dei contenuti: ciò che è sul disco è già
-# risolto. Git è solo un backup. Strategia: committa lo stato locale, allineati
-# al remoto col rebase (in conflitto vince il locale), e non pushare mai
-# marcatori di conflitto.
+# Single-writer setup: LiveSync is the source of truth, git is backup only.
+# Remote can never be ahead of local, so no fetch/rebase needed.
+
+# Guard: reject conflict markers on disk before they can be committed.
+if grep -rlE '^(<<<<<<< |=======|>>>>>>> )' --include='*.md' . >> "$LOG" 2>&1; then
+  log "ERROR: conflict markers on disk. Fix manually before next backup."
+  exit 1
+fi
 
 git add .
 
@@ -20,24 +24,6 @@ fi
 
 log "Cambiamenti rilevati. Committing..."
 git commit -m "Backup automatico: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG" 2>&1
-
-# Allineamento al remoto: rebase con preferenza al locale (niente force-push,
-# niente perdita silenziosa). Se il rebase fallisce, abort e niente push.
-git fetch origin >> "$LOG" 2>&1
-if [ -n "$(git rev-list HEAD..origin/main 2>/dev/null)" ]; then
-  log "Remoto avanti: rebase con preferenza al locale."
-  if ! git rebase -X ours origin/main >> "$LOG" 2>&1; then
-    log "ERROR: rebase fallito, abort. Push saltato — risolvere a mano."
-    git rebase --abort >> "$LOG" 2>&1
-    exit 1
-  fi
-fi
-
-# Guardia: non pushare MAI file con marcatori di conflitto.
-if git grep -lE '^(<<<<<<< |=======$|>>>>>>> )' HEAD -- '*.md' >> "$LOG" 2>&1; then
-  log "ERROR: trovati marcatori di conflitto nei file committati. Push saltato."
-  exit 1
-fi
 
 log "Push su GitHub..."
 if ! git push origin main >> "$LOG" 2>&1; then
