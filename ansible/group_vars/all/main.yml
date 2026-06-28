@@ -102,6 +102,7 @@ brew_casks:
   - kitty
   - ngrok
   - tailscale-app
+  - nextcloud
 
 # Obsidian vault path backing docs/ (only symlinked when enable_docs)
 docs_vault_path: "~/Documents/Taccuino Cerusico/60 - Progetti/dotfiles"
