@@ -54,6 +54,24 @@
     HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
   tags: install
 
+- name: Install sudo-required casks (pkg-based, needs admin rights)
+  community.general.homebrew_cask:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ brew_casks_sudo | default([]) }}"
+  environment:
+    HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
+  ignore_errors: true
+  tags: install
+  register: brew_casks_sudo_result
+
+- name: Warn about skipped sudo-required casks
+  ansible.builtin.debug:
+    msg: "Skipped (needs admin): {{ item.item }} — run the playbook manually with --ask-become-pass during a 10-minute admin window."
+  loop: "{{ brew_casks_sudo_result.results }}"
+  when: item.failed | default(false)
+  tags: install
+
 - name: Install profile-specific casks
   community.general.homebrew_cask:
     name: "{{ item }}"

@@ -58,6 +58,48 @@
     state: present
   tags: macos
 
+- name: Set colima as active docker context
+  ansible.builtin.command:
+    cmd: docker context use colima
+  changed_when: false
+  tags: macos
+
+- name: Install colima-docker-sock LaunchDaemon plist
+  ansible.builtin.template:
+    src: colima-docker-sock.plist.j2
+    dest: /Library/LaunchDaemons/com.lucatrifilio.colima-docker-sock.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+  become: true
+  notify: reload colima-docker-sock daemon
+  tags:
+    - macos
+    - become
+
+- name: Check if colima-docker-sock daemon is already loaded
+  ansible.builtin.command:
+    cmd: launchctl print system/com.lucatrifilio.colima-docker-sock
+  register: macos_colima_sock_status
+  failed_when: false
+  changed_when: false
+  become: true
+  tags:
+    - macos
+    - become
+
+- name: Bootstrap colima-docker-sock daemon (first run only)
+  ansible.builtin.command:
+    cmd: launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.colima-docker-sock.plist
+  become: true
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - macos_colima_sock_status.rc | default(1) != 0
+  tags:
+    - macos
+    - become
+
 # --- SSH homelab host block (~/.ssh/config) ---
 # blockinfile manages only the marked region; the colima includes and the
 # github.com / github-personal identity blocks elsewhere in the file are untouched.

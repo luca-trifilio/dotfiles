@@ -101,7 +101,12 @@ brew_casks:
   - font-jetbrains-mono-nerd-font
   - kitty
   - ngrok
-  - tailscale-app
+
+# Casks that use .pkg installers and require sudo (e.g. upgrades call /usr/sbin/installer).
+# Installed with ignore_errors so non-interactive runs (post-merge hook) don't abort.
+# Run the playbook manually with a 10-minute admin window to upgrade these.
+# tailscale-app: managed via App Store on work-mac, not tracked here.
+brew_casks_sudo:
   - nextcloud
 
 # Obsidian vault path backing docs/ (only symlinked when enable_docs)
