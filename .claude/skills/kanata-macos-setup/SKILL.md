@@ -1,30 +1,34 @@
 ---
 name: kanata-macos-setup
 description: Use when the user asks to "set up kanata", "replace karabiner",
-  "remap caps lock", "key remapper macOS", or needs to configure kanata as a
+  "remap caps lock", "key remapper macOS", "kanata connect_failed", "keyboard
+  not working after brew upgrade", or needs to configure kanata as a
   Karabiner-Elements replacement on macOS.
 ---
 
 ## Context
 
 On macOS, kanata uses the Karabiner DriverKit VirtualHIDDevice for output.
-KE app can be fully uninstalled — only the VirtualHID driver must remain.
+**Karabiner-Elements (the full app, via `brew install --cask karabiner-elements`) must stay installed** — it is what provides and launches the `Karabiner-VirtualHIDDevice-Daemon`. There is no supported standalone-driver-only install; the daemon's LaunchDaemon plist lives inside the KE app bundle, not in `/Library/LaunchDaemons`. Only KE's *own remapping engine* (`Karabiner-Core-Service` and its GUI agents) gets disabled — the app itself is not removed.
+
 Kanata must run as root via LaunchDaemon (not LaunchAgent).
 
 **Critical**: kanata requires TWO components at boot:
-1. `org.pqrs.Karabiner-DriverKit-VirtualHIDDevice` — the kernel dext (usually auto-started)
-2. `Karabiner-VirtualHIDDevice-Daemon` — the bridge daemon (needs its own LaunchDaemon)
+1. `org.pqrs.Karabiner-DriverKit-VirtualHIDDevice` — the kernel dext (auto-started by the system extension framework)
+2. `Karabiner-VirtualHIDDevice-Daemon` — the bridge daemon, launched via the plist bundled inside `/Library/Application Support/org.pqrs/Karabiner-Elements/Karabiner-Elements Privileged Daemons v2.app/Contents/Library/LaunchDaemons/org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon.plist`
 
-If the daemon is missing, kanata loops with `connect_failed asio.system:61` at boot, which monopolizes the internal keyboard HID and blocks all input after login.
+If the daemon is missing or can't connect, kanata loops with `connect_failed asio.system:NN` at boot, which monopolizes the internal keyboard HID and blocks all input after login. **Two different root causes produce this same symptom** — see the two troubleshooting entries below; don't assume it's always the HID-conflict one.
 
 ## File layout in dotfiles
 
 | Path | Purpose |
 |---|---|
 | `kanata/kanata.kbd` | Config (XDG, stowed to `~/.config/kanata/`) |
-| `kanata-daemon/com.lucatrifilio.kanata.plist` | LaunchDaemon template (excluded from stow, installed to `/Library/LaunchDaemons/` via setup.sh) |
+| `kanata-daemon/com.lucatrifilio.kanata.plist` | LaunchDaemon template (excluded from stow, installed to `/Library/LaunchDaemons/` via the ansible `macos` role) |
 
 Add `--ignore=^kanata-daemon$` to `.stowrc`.
+
+The actual install path is `ansible/roles/macos/tasks/main.yml` (`enable_kanata` var) — it templates `kanata.plist.j2` to `/Library/LaunchDaemons/com.lucatrifilio.kanata.plist`, bootstraps it, and disables the KE Core-Service daemon + GUI agents listed below. It does **not** install any separate VirtualHIDDevice-Daemon plist — KE's own bundled one is used as-is.
 
 ## kanata.kbd template
 
@@ -54,40 +58,7 @@ All others (external keyboards, Glove80, etc.) are ignored automatically.
 
 **Media keys**: when kanata grabs the device in exclusive mode, the Apple keyboard sends media keys as F-keys (F1, F2, F7-F12) rather than consumer HID events. They must be explicitly mapped back to consumer outputs (`brdn`, `brup`, `mute`, `vold`, `volu`, `pp`, `prev`, `next`) — transparent `_` is not enough. Do NOT use `process-unmapped-keys no` to fix this; it breaks caps lock remapping.
 
-## LaunchDaemon plist templates
-
-### 1. VirtualHIDDevice-Daemon (required — create if missing)
-
-The daemon binary lives in `/Library/Application Support/org.pqrs/...` but has no LaunchDaemon plist by default after uninstalling KE. Must be created manually:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>org.pqrs.karabiner-virtualhiddevice-daemon</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <true/>
-    <key>StandardOutPath</key>
-    <string>/tmp/karabiner-virtualhid-daemon.log</string>
-    <key>StandardErrorPath</key>
-    <string>/tmp/karabiner-virtualhid-daemon.log</string>
-</dict>
-</plist>
-```
-
-Install: write to `/tmp/` first (no sudo needed), then `sudo cp` to `/Library/LaunchDaemons/`.
-
-### 2. Kanata LaunchDaemon
-
-Kanata is invoked directly — no wrapper script needed. The VirtualHIDDevice-Daemon LaunchDaemon ensures the bridge is ready before kanata starts. Use `__HOME__` as placeholder — setup.sh substitutes it with `$HOME` at install time.
+## Kanata LaunchDaemon
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -115,11 +86,13 @@ Kanata is invoked directly — no wrapper script needed. The VirtualHIDDevice-Da
 </plist>
 ```
 
+Use `__HOME__` as placeholder — the install step substitutes it with `$HOME`.
+
 ## Troubleshooting: kanata stopped working after dotfiles change
 
 **Symptom**: kanata smette di funzionare dopo una modifica al plist template in dotfiles (es. refactor, nuovo path, nuovi argomenti).
 
-**Cause**: il plist in `/Library/LaunchDaemons/` non si aggiorna automaticamente quando cambia il template nel repo — sono due file separati. `setup.sh` va rieseguito manualmente per propagare il cambiamento.
+**Cause**: il plist in `/Library/LaunchDaemons/` non si aggiorna automaticamente quando cambia il template nel repo — sono due file separati. Il playbook ansible va rieseguito manualmente per propagare il cambiamento.
 
 **Fix**: reinstalla il plist dal template aggiornato:
 ```bash
@@ -137,7 +110,7 @@ sudo launchctl list | grep kanata  # deve mostrare PID numerico
 
 **Symptom**: kanata not working after reboot; plist exists in `/Library/LaunchDaemons/` but `sudo launchctl list | grep kanata` returns nothing. Process can only be started manually with `sudo kanata ...`.
 
-**Cause**: the plist was copied to `/Library/LaunchDaemons/` but never bootstrapped into launchd (e.g. setup.sh ran `cp` but not `bootstrap`, or the service was `bootout`ed).
+**Cause**: the plist was copied to `/Library/LaunchDaemons/` but never bootstrapped into launchd (e.g. setup ran `cp` but not `bootstrap`, or the service was `bootout`ed).
 
 **Diagnose**:
 ```bash
@@ -154,25 +127,70 @@ sudo launchctl print system/com.lucatrifilio.kanata  # should show state = runni
 
 ---
 
-## Troubleshooting: keyboard blocked after boot
+## Troubleshooting: keyboard blocked after boot (HID device conflict)
 
 **Symptom**: internal keyboard works at login screen but stops after login. `cat /tmp/kanata.log` shows `connect_failed asio.system:61` in a loop.
 
-**Cause**: kanata starts before `Karabiner-VirtualHIDDevice-Daemon` is ready, monopolizing the HID device.
+**Cause**: kanata starts before `Karabiner-VirtualHIDDevice-Daemon` is ready, monopolizing the HID device. This is a *timing* problem — the daemon exists and is compatible, it just hasn't bound its socket yet.
 
 **Diagnose**:
 ```bash
 sudo launchctl list | grep -i "pqrs\|karabiner\|virtual"
-# Should show VirtualHIDDevice-Daemon running. If missing, create its plist (see above).
+# Should show Karabiner-VirtualHIDDevice-Daemon running.
 ps aux | grep -E "kanata|VirtualHIDDevice-Daemon"
 ```
 
 **Fix**:
-1. Stop kanata: `sudo launchctl bootout system/com.lucatrifilio.kanata`
-2. Create/start VirtualHIDDevice-Daemon plist if missing
-3. Re-bootstrap kanata
+```bash
+sudo launchctl bootout system/com.lucatrifilio.kanata
+sudo launchctl bootout system/org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon 2>/dev/null || true
+sudo launchctl bootstrap system "/Library/Application Support/org.pqrs/Karabiner-Elements/Karabiner-Elements Privileged Daemons v2.app/Contents/Library/LaunchDaemons/org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon.plist"
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+```
 
-**Note on `com.apple.provenance`**: files created via `sudo tee` get this xattr and become immutable even with sudo. Workaround: write to `/tmp/` first, then `sudo cp` to `/Library/LaunchDaemons/`.
+**Note on `com.apple.provenance`**: files created via `sudo tee` get this xattr and become immutable even with sudo. Workaround: write to `/tmp/` first, then `sudo cp` to the destination.
+
+---
+
+## Troubleshooting: kanata connect_failed despite daemon running — driver/kanata version mismatch (CRITICAL, easy to misdiagnose as the HID-conflict above)
+
+**Symptom**: `connect_failed asio.system:2` loops forever in `/tmp/kanata.log`, even after confirming both `com.lucatrifilio.kanata` and `Karabiner-VirtualHIDDevice-Daemon` are freshly running, even after a full reboot, even after fully removing and reinstalling Karabiner-Elements. `/var/log/karabiner/virtual_hid_device_service.log` shows the daemon logging `bound` successfully but never logs `peer_connected` for kanata's attempts.
+
+**Cause**: `brew install --cask karabiner-elements` always pulls the *latest* driver (`Karabiner-DriverKit-VirtualHIDDevice`). Kanata's macOS client is version-pinned to an older driver protocol — as of kanata v1.12.0 (latest, 2026-07-05) the documented supported driver is **v6.2.0**. Driver v7.0.0+ introduced breaking protocol changes (removed `get_status`, bumped protocol version), so any driver ≥ v7 silently breaks kanata's connection with no clear error — `asio.system:2` (ENOENT) rather than a version-mismatch message. Kanata's maintainer has no macOS hardware and doesn't validate this path, so this drift is not caught upstream.
+
+**Diagnose**:
+```bash
+# Confirm daemon never logs peer_connected for the new client despite it running:
+sudo tail -20 /var/log/karabiner/virtual_hid_device_service.log
+
+# Trace what path kanata is actually trying to reach (look for "vhidd_server" vs whatever
+# the daemon actually created — "vhidd_client"/"vhidd_response" dirs are a mismatch):
+sudo fs_usage -w -f filesys 2>/dev/null | grep -i kanata
+
+# Compare installed driver version against kanata's supported ceiling:
+pkgutil --pkg-info org.pqrs.Karabiner-DriverKit-VirtualHIDDevice   # look at "version:"
+gh release view --repo jtroo/kanata --json body -q .body | grep -i "driver version"
+```
+
+If the installed driver version is higher than what kanata's release notes document as supported, this is the cause.
+
+**Fix**: downgrade just the driver package (not the whole KE app) to the version kanata supports, via the pqrs-org standalone installer:
+```bash
+gh release download v6.2.0 --repo pqrs-org/Karabiner-DriverKit-VirtualHIDDevice --pattern "*.pkg" --clobber
+sudo installer -pkg Karabiner-DriverKit-VirtualHIDDevice-6.2.0.pkg -target /
+pkgutil --pkg-info org.pqrs.Karabiner-DriverKit-VirtualHIDDevice   # confirm version: 6.2.0
+
+# Restart daemon + kanata (no reboot or dext re-approval needed — same team ID/bundle ID):
+sudo launchctl bootout system/org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon 2>/dev/null || true
+sudo launchctl bootstrap system "/Library/Application Support/org.pqrs/Karabiner-Elements/Karabiner-Elements Privileged Daemons v2.app/Contents/Library/LaunchDaemons/org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon.plist"
+sudo launchctl bootout system/com.lucatrifilio.kanata
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+tail -f /tmp/kanata.log   # should show "driver connected: true", no more connect_failed
+```
+
+**Prevention**: `brew upgrade`/`brew reinstall --cask karabiner-elements` will silently re-pull the latest (incompatible) driver. Either `brew pin karabiner-elements`, or re-check `pkgutil --pkg-info org.pqrs.Karabiner-DriverKit-VirtualHIDDevice` after any KE-related brew upgrade and re-apply the downgrade above if it moved past the version kanata's current release documents as supported.
+
+**Do NOT** respond to this symptom by deleting `/Applications/Karabiner-Elements.app` or inventing a standalone `VirtualHIDDevice-Daemon` LaunchDaemon outside the KE app bundle — neither is how the real working setup is structured (see Context above), and both make the actual version-mismatch cause harder to find.
 
 ---
 
@@ -180,7 +198,7 @@ ps aux | grep -E "kanata|VirtualHIDDevice-Daemon"
 
 **Symptom**: caps lock remapping stops working; kanata log loops `driver connected: false / driver connected: true`. Media keys may also break.
 
-**Cause**: KE user agents (especially `Karabiner-Core-Service-rev2`) restart after a macOS update or KE reinstall, grabbing the HID device before kanata. Always check **both** system daemon and user agents.
+**Cause**: KE user agents (especially `Karabiner-Core-Service-rev2`) restart after a macOS update, KE reinstall, or KE app launch (even a headless `open -g`), grabbing the HID device before kanata. Always check **both** system daemon and user agents.
 
 **Diagnose**:
 ```bash
@@ -216,69 +234,28 @@ sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.p
 
 **Fix**: map F-keys explicitly to consumer outputs in `defsrc`/`deflayer` (see template above). Do NOT switch to `process-unmapped-keys no` — it restores media keys but breaks caps lock remapping.
 
-## setup.sh steps
-
-```bash
-# Install VirtualHIDDevice-Daemon LaunchDaemon
-sed "s|__HOME__|$HOME|g" "$(pwd)/kanata-daemon/org.pqrs.karabiner-virtualhiddevice-daemon.plist" \
-  > /tmp/karabiner-vhid-daemon.plist
-sudo cp /tmp/karabiner-vhid-daemon.plist /Library/LaunchDaemons/org.pqrs.karabiner-virtualhiddevice-daemon.plist
-sudo launchctl bootout system/org.pqrs.karabiner-virtualhiddevice-daemon 2>/dev/null || true
-sudo launchctl bootstrap system /Library/LaunchDaemons/org.pqrs.karabiner-virtualhiddevice-daemon.plist
-
-# Install kanata LaunchDaemon (substitute $HOME at install time)
-sed "s|__HOME__|$HOME|g" "$(pwd)/kanata-daemon/com.lucatrifilio.kanata.plist" \
-  > /tmp/kanata.plist
-sudo cp /tmp/kanata.plist /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
-sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
-sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
-
-# Disable KE daemons (keep only VirtualHID driver)
-for agent in \
-  org.pqrs.service.agent.Karabiner-Core-Service \
-  org.pqrs.service.agent.Karabiner-Core-Service-rev2 \
-  org.pqrs.service.agent.karabiner_console_user_server \
-  org.pqrs.service.agent.karabiner_session_monitor \
-  org.pqrs.service.agent.Karabiner-NotificationWindow; do
-  launchctl disable gui/$(id -u)/$agent 2>/dev/null || true
-  launchctl bootout gui/$(id -u)/$agent 2>/dev/null || true
-done
-sudo launchctl disable system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/dev/null || true
-sudo launchctl bootout system/org.pqrs.service.daemon.Karabiner-Core-Service 2>/dev/null || true
-```
-
 ## Brewfile
 
 ```
 brew "kanata"
-# karabiner-elements cask NOT needed — only VirtualHID driver required,
-# which persists after uninstalling KE app
+cask "karabiner-elements"   # REQUIRED — provides the VirtualHIDDevice-Daemon kanata depends on.
+                            # Do not remove after install; only its Core-Service engine is disabled.
 ```
 
 ## Manual steps (new machine)
 
 1. Add `/opt/homebrew/bin/kanata` to **System Settings → Privacy & Security → Input Monitoring**
 2. Remove leftover KE entries from Input Monitoring if present
-
-## KE cleanup (new machine)
-
-After setup.sh disables KE daemons, remove KE app files:
-
-```bash
-sudo rm -rf '/Applications/Karabiner-Elements.app'
-sudo rm -rf '/Applications/Karabiner-EventViewer.app'
-sudo rm -rf '/Library/Application Support/org.pqrs/Karabiner-Elements'
-```
-
-Leave `/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice` intact.
+3. After first install (or any `karabiner-elements` cask upgrade), check the driver version per the version-mismatch entry above — the cask does not pin a kanata-compatible version
 
 ## KE services reference
 
 | Service | Keep? | Reason |
 |---|---|---|
-| `Karabiner-VirtualHIDDevice-Daemon` | YES | kanata output driver |
-| `Karabiner-DriverKit-VirtualHIDDevice` | YES | kernel extension |
-| `Karabiner-Core-Service` (daemon) | NO | karabiner_grabber |
+| Karabiner-Elements.app (full bundle) | YES | hosts the VirtualHIDDevice-Daemon's LaunchDaemon plist |
+| `Karabiner-VirtualHIDDevice-Daemon` | YES | kanata output driver bridge |
+| `Karabiner-DriverKit-VirtualHIDDevice` (dext) | YES, but version-pinned | must not exceed kanata's supported driver version (v6.2.0 as of kanata v1.12.0) |
+| `Karabiner-Core-Service` (daemon) | NO | karabiner_grabber, conflicts with kanata for the HID device |
 | `Karabiner-Core-Service` (agent) | NO | KE UI agent |
 | `karabiner_console_user_server` | NO | keyboard type dialog |
 | `karabiner_session_monitor` | NO | session handling |
