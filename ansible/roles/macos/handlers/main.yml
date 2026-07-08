@@ -29,6 +29,12 @@
   changed_when: true
   listen: reload colima-docker-sock daemon
 
+- name: Restart colima service
+  ansible.builtin.command:
+    cmd: brew services restart colima
+  changed_when: true
+  listen: restart colima service
+
 - name: Bootout kanata daemon (for reload)
   ansible.builtin.command:
     cmd: launchctl bootout system/com.lucatrifilio.kanata

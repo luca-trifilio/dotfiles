@@ -22,18 +22,24 @@
   tags: macos
 
 # --- Colima ---
-- name: Check if legacy ~/.colima exists
+# colima only reads XDG_CONFIG_HOME at startup; brew services regenerates its LaunchAgent
+# plist from the formula on every start/restart/upgrade, always without that env var, so a
+# one-shot ~/.colima -> ~/.config/colima migration (or patching the plist) regresses on the
+# next reboot. Making ~/.colima itself a symlink to ~/.config/colima sidesteps env vars
+# entirely: colima always resolves ~/.colima first, so it lands on the XDG path no matter
+# how the service is launched.
+- name: Check current state of ~/.colima
   ansible.builtin.stat:
     path: "{{ ansible_env.HOME }}/.colima"
-  register: macos_colima_legacy_dir
+  register: macos_colima_legacy
   tags: macos
 
-- name: Migrate ~/.colima to XDG path (~/.config/colima)
+- name: Migrate real ~/.colima directory into XDG path
   ansible.builtin.shell: |
     colima stop 2>/dev/null || true
     rm -rf "{{ ansible_env.HOME }}/.config/colima"
     mv "{{ ansible_env.HOME }}/.colima" "{{ ansible_env.HOME }}/.config/colima"
-  when: macos_colima_legacy_dir.stat.exists
+  when: macos_colima_legacy.stat.exists and not macos_colima_legacy.stat.islnk
   changed_when: true
   tags: macos
 
@@ -50,6 +56,15 @@
     dest: "{{ ansible_env.HOME }}/.config/colima/default/colima.yaml"
     state: link
     force: true
+  tags: macos
+
+- name: Symlink ~/.colima to ~/.config/colima
+  ansible.builtin.file:
+    src: "{{ ansible_env.HOME }}/.config/colima"
+    dest: "{{ ansible_env.HOME }}/.colima"
+    state: link
+    force: true
+  notify: restart colima service
   tags: macos
 
 - name: Start colima service (autostart)

@@ -43,10 +43,16 @@ brew services start colima
 Add to `~/Progetti/dotfiles/zsh/exports.zsh`:
 
 ```bash
-# Colima — Docker socket for Testcontainers
-export DOCKER_HOST="unix://${HOME}/.config/colima/default/docker.sock"
+# Colima — Testcontainers config
+# /var/run/docker.sock is symlinked to the colima XDG socket at boot via launchd.
+# DOCKER_HOST is intentionally unset — the active docker context (colima) handles routing.
 export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+# Pin the Docker API version: the docker-java client used by Testcontainers
+# defaults to an old API (1.32) that Colima's Docker engine rejects ("too old").
+export DOCKER_API_VERSION=1.41
 ```
+
+Do NOT set `DOCKER_HOST` — it overrides the active docker context and causes routing issues.
 
 Then reload: `source ~/.zshrc`
 
@@ -107,32 +113,60 @@ brew install docker
 
 ## Fix: Colima XDG config (`~/.colima` → `~/.config/colima`)
 
-Colima crea `~/.colima` per default, ma emette warning se `XDG_CONFIG_HOME` è impostato.
+Colima crea `~/.colima` per default e legge `XDG_CONFIG_HOME` solo se quella directory non
+esiste già. `brew services` rigenera il LaunchAgent plist dalla formula ad ogni
+start/restart/upgrade, **senza mai includere `XDG_CONFIG_HOME`** — quindi una migrazione
+one-shot (`mv ~/.colima ~/.config/colima`) o un patch del plist regrediscono al riavvio
+successivo (successo apparente, poi si ripresenta lo stesso problema).
 
-**Ansible lo gestisce automaticamente** (task `Migrate ~/.colima to XDG path` in `roles/macos/tasks/main.yml`).
+**Fix permanente:** rendere `~/.colima` uno **symlink** verso `~/.config/colima`, invece di
+spostare la directory. Colima risolve sempre `~/.colima` per primo, quindi finisce sulla
+directory XDG indipendentemente da come/quando il servizio viene avviato — nessuna
+dipendenza da env var che brew possa cancellare.
 
-Per migrare manualmente (senza Ansible):
+**Ansible lo gestisce automaticamente** (task `Symlink ~/.colima to ~/.config/colima` in
+`roles/macos/tasks/main.yml`, idempotente — riapplicato ad ogni run).
+
+Per applicare manualmente (senza Ansible):
 
 ```bash
 colima stop
-mv ~/.colima ~/.config/colima
+rm -rf ~/.colima          # o: mv ~/.colima ~/.config/colima se contiene ancora dati reali
+ln -sfn ~/.config/colima ~/.colima
 colima start
 ```
 
-Verifica che nessun warning appaia: `colima status 2>&1 | grep -v info`.
+Il warning `found ~/.colima, ignoring $XDG_CONFIG_HOME` continua a comparire anche con lo
+symlink (colima non distingue directory reale da symlink) — è cosmetic, ignoralo: `colima
+status` mostra comunque `docker socket: unix:///Users/.../.colima/default/docker.sock`, che
+risolve a `~/.config/colima/default/docker.sock`.
 
-## Fix: `/var/run/docker.sock` punta ancora a Docker Desktop
+## Fix: `/var/run/docker.sock` mancante o punta a Docker Desktop
 
-Dopo la rimozione di Docker Desktop, `/var/run/docker.sock` può puntare a
+Dopo la rimozione di Docker Desktop, `/var/run/docker.sock` può mancare o puntare a
 `~/.docker/run/docker.sock` (non più esistente). Testcontainers fallisce con
 `Could not find a valid Docker environment`.
 
-Fix:
+**Ansible lo gestisce automaticamente** via LaunchDaemon (`com.lucatrifilio.colima-docker-sock`)
+installato in `/Library/LaunchDaemons/`. Il daemon ricrea il symlink al boot:
+
+```
+/var/run/docker.sock → ~/.config/colima/default/docker.sock
+```
+
+Per applicare manualmente senza Ansible:
 
 ```bash
 sudo ln -sf "$HOME/.config/colima/default/docker.sock" /var/run/docker.sock
 ```
 
-**Nota:** questo fix non persiste ai reboot. Per renderlo permanente usare le env var
-`DOCKER_HOST` e `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE` (già documentate nella sezione
-"Configure env vars") — così Testcontainers non dipende da `/var/run/docker.sock`.
+**Nota:** il fix manuale non persiste ai reboot — usare il LaunchDaemon via Ansible.
+
+## Fix: `default` docker context punta a path inesistente
+
+Il context `default` è built-in e non può essere rimosso né aggiornato. Se mostra un
+path sbagliato (es. `~/.colima/default/docker.sock`), ignorarlo — è cosmetic.
+Verificare che il context `colima` sia attivo (`*`) con `docker context list`.
+
+Se `DOCKER_HOST` è impostato nel shell, sovrascrive il context attivo e fa comparire
+`default *` anche se il context colima è selezionato. Soluzione: non impostare `DOCKER_HOST`.
