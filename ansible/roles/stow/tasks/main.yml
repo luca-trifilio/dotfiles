@@ -50,6 +50,21 @@
     mode: "0600"
   tags: stow
 
+# --- Templated ~/.kube/config (both: EKS test/staging; personal: homelab) ---
+- name: Ensure ~/.kube directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+    mode: "0700"
+  tags: stow
+
+- name: Template ~/.kube/config
+  ansible.builtin.template:
+    src: kubeconfig.j2
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+    mode: "0600"
+  tags: stow
+
 # --- git hooks path (auto-apply ansible after git pull via git-hooks/) ---
 - name: Set core.hooksPath for dotfiles repo
   community.general.git_config:

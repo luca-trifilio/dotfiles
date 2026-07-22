@@ -126,6 +126,13 @@ Karabiner-Elements overwrites the `~/.config/karabiner` symlink with a real dire
 **karabiner symlink must use `ln -sfn`**
 `ansible.builtin.file: state=link, force=true` refuses to replace a non-empty directory. Use `ansible.builtin.command: ln -sfn <src> <dest>` — this replaces the directory entry without touching contents, matching the original `setup.sh` behavior.
 
+**bootstrap.yml vs site.yml — always --limit with bootstrap.yml**
+`bootstrap.yml` is an interactive wrapper that imports `site.yml` with `target_hosts` set to the chosen profile. When run on a single machine, it still evaluates `pre_tasks` for all hosts in inventory — the hostname assertion on the other profile will fail. Always pass `--limit <profile>-mac` when using `bootstrap.yml` from the CLI:
+```bash
+ansible-playbook playbooks/bootstrap.yml --ask-become-pass --tags macos,become --limit work-mac
+```
+Prefer `site.yml` directly for non-interactive runs — it requires `--limit` by design and avoids the issue entirely.
+
 **colima homebrew_services: use `state=present` not `state=started`**
 `state=started` is not a valid value for `community.general.homebrew_services`. Use `state=present` to register the service for autostart.
 
