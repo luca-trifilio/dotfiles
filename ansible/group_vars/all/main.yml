@@ -106,8 +106,7 @@ brew_casks:
 # Installed with ignore_errors so non-interactive runs (post-merge hook) don't abort.
 # Run the playbook manually with a 10-minute admin window to upgrade these.
 # tailscale-app: managed via App Store on work-mac, not tracked here.
-brew_casks_sudo:
-  - nextcloud
+brew_casks_sudo: []
 
 # Obsidian vault path backing docs/ (only symlinked when enable_docs)
 docs_vault_path: "~/Documents/Taccuino Cerusico/60 - Progetti/dotfiles"
