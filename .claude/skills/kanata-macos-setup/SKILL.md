@@ -194,6 +194,39 @@ tail -f /tmp/kanata.log   # should show "driver connected: true", no more connec
 
 ---
 
+## Troubleshooting: Input Monitoring / Accessibility permission lost after every kanata upgrade
+
+**Symptom**: after `brew upgrade kanata` (or after removing/re-adding the entry), kanata crash-loops: first `failed to open keyboard device(s): kanata needs macOS Input Monitoring permission`, then — after re-granting that — `kanata needs macOS Accessibility permission`. **Both** permissions are required, not just Input Monitoring.
+
+**Cause**: kanata ships ad-hoc signed (`codesign -dv` shows `flags=0x20002(adhoc,linker-signed)`, `TeamIdentifier=not set`, identifier like `kanata-<hash>`). The identifier changes on every build/version, so TCC (which ties the grant to resolved path + code requirement) loses the permission on every upgrade — not just when the versioned Cellar path changes, but even at the same path if the binary is rebuilt. Confirmed by the kanata community (github.com/jtroo/kanata/discussions/1537): there is no workaround on the Input Monitoring side, it must be re-granted manually after every upgrade.
+
+**Diagnose**:
+```bash
+tail -10 /tmp/kanata.log
+# "needs macOS Input Monitoring permission" or "needs macOS Accessibility permission"
+sudo sqlite3 "/Library/Application Support/com.apple.TCC/TCC.db" \
+  "SELECT client,auth_value FROM access WHERE service='kTCCServiceListenEvent' AND client LIKE '%kanata%';"
+```
+
+**Fix** (repeat on every upgrade, unless/until `brew pin kanata` or a fixed re-sign identifier is adopted):
+```bash
+readlink /opt/homebrew/bin/kanata   # resolve the real versioned path, e.g. ../Cellar/kanata/1.12.0/bin/kanata
+```
+1. System Settings → Privacy & Security → **Input Monitoring** → `+` → `Cmd+Shift+G` → paste the resolved real path above (the Finder picker does **not** follow symlinks, it needs the versioned Cellar path, not `/opt/homebrew/bin/kanata`) → select → enable the toggle
+2. Repeat the same for **Accessibility** (same path)
+3. Restart the service:
+```bash
+sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
+tail -f /tmp/kanata.log   # expect "driver connected: true", "virtual_hid_keyboard_ready true"
+```
+
+**Prevention (not yet applied)**: two options considered, neither implemented:
+- `brew pin kanata` — avoids automatic upgrades, permission stays valid until you unpin/upgrade yourself
+- Copy the binary to a fixed path and re-sign it with `codesign --sign - --identifier <fixed-id>` instead of the default hash-based identifier — survives upgrades but requires re-running the copy+sign step after every `brew upgrade kanata`
+
+---
+
 ## Troubleshooting: KE agents revive and break caps lock remapping (recurring)
 
 **Symptom**: caps lock remapping stops working; kanata log loops `driver connected: false / driver connected: true`. Media keys may also break.
@@ -244,7 +277,7 @@ cask "karabiner-elements"   # REQUIRED — provides the VirtualHIDDevice-Daemon 
 
 ## Manual steps (new machine)
 
-1. Add `/opt/homebrew/bin/kanata` to **System Settings → Privacy & Security → Input Monitoring**
+1. Add the resolved kanata binary (`readlink /opt/homebrew/bin/kanata` for the real Cellar path) to **both** System Settings → Privacy & Security → **Input Monitoring** and **Accessibility** — see the permission-loss troubleshooting entry above, both are required
 2. Remove leftover KE entries from Input Monitoring if present
 3. After first install (or any `karabiner-elements` cask upgrade), check the driver version per the version-mismatch entry above — the cask does not pin a kanata-compatible version
 
