@@ -11,6 +11,9 @@ claude = [["state_icon", "workspace", "tab"], ["terminal_title_stripped"], ["age
 
 [keys]
 prefix = "ctrl+a"
+previous_workspace = "prefix+["
+next_workspace = "prefix+]"
+switch_workspace = "prefix+shift+1..9"
 
 [ui.toast]
 delivery = "herdr"
