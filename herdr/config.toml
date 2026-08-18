@@ -1,3 +1,4 @@
+onboarding = false
 # herdr configuration
 # Generated during initial setup on 2026-08-18.
 # Full commented reference: `herdr --default-config`
@@ -7,3 +8,15 @@ name = "catppuccin-macchiato"
 
 [ui.sidebar.agents.rows_by_agent]
 claude = [["state_icon", "workspace", "tab"], ["terminal_title_stripped"], ["agent"]]
+
+[keys]
+prefix = "ctrl+a"
+
+[ui.toast]
+delivery = "herdr"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+
+[ui.sound]
+enabled = false

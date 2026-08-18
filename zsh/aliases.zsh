@@ -25,6 +25,9 @@ function dotfiles-apply() {
 alias kns='kubens'
 alias kx='kubectx'
 
+alias hp='herdr --session personal'
+alias hw='herdr --session work'
+
 function ts() { ~/.config/tmux/session-picker.sh }
 
 function y() {

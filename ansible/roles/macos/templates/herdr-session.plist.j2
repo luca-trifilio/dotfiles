@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.lucatrifilio.herdr-{{ herdr_session_name }}</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{ homebrew_prefix }}/bin/herdr</string>
+    <string>server</string>
+    <string>--session</string>
+    <string>{{ herdr_session_name }}</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>{{ ansible_env.HOME }}/Library/Logs/herdr-{{ herdr_session_name }}.log</string>
+  <key>StandardErrorPath</key>
+  <string>{{ ansible_env.HOME }}/Library/Logs/herdr-{{ herdr_session_name }}.log</string>
+</dict>
+</plist>

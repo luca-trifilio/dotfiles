@@ -27,6 +27,14 @@ enable_obsidian_backup: false
 obsidian_vault_path: ""
 obsidian_backup_interval: 1800
 
+# herdr named persistent sessions (both machines — personal/work are areas of
+# work, not machine profiles; both areas can be attached on either Mac).
+# The unnamed "default" session (brew services) stays as a separate catch-all,
+# not listed here.
+herdr_sessions:
+  - personal
+  - work
+
 # Homebrew
 homebrew_prefix: "/opt/homebrew"
 
