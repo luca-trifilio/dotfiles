@@ -3,8 +3,9 @@
 ---
 id: ADR-0002
 title: Use Ansible Homebrew Modules Instead of Brewfile as Package Source of Truth
-status: Accepted
+status: Amended
 date: 2026-06-16
+amended: 2026-08-18
 ---
 
 ## Context
@@ -28,6 +29,12 @@ Migrate all package lists from `brew/Brewfile` into Ansible group_vars:
 The `homebrew` role uses `community.general.homebrew_tap`, `community.general.homebrew`,
 and `community.general.homebrew_cask` modules. The existing Brewfile is kept as a reference
 backup but is no longer the run target.
+
+**Amendment (2026-08-18):** `brew/Brewfile` removed entirely. It had already drifted from
+`group_vars` (packages added to one but not the other since the migration), so it no longer
+worked as a reliable rollback snapshot — it was stale, not a safety net. The rollback path in
+`ansible/README.md` now documents Ansible's own `--tags install --check` / direct module
+invocation instead of a second package list that needs to be kept in sync by hand.
 
 ## Alternatives Considered
 

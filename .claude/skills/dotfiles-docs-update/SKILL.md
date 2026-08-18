@@ -14,9 +14,10 @@ Keep `docs/` in sync with the actual dotfiles state. Docs live in the Obsidian v
 | `aerospace/` | `docs/aerospace.md` |
 | `ansible/` | `docs/ansible.md` |
 | `atuin/` | `docs/atuin.md` |
-| `brew/Brewfile` | `docs/brew.md` |
+| `ansible/group_vars/*/main.yml` | `docs/brew.md` (also `docs/ansible.md`) |
 | `zsh/fzf.zsh`, `bat/`, `fzf-git.sh/` | `docs/fzf.md` |
 | `gitconfig/`, `git/` | `docs/git.md` |
+| `herdr/` | `docs/herdr.md` |
 | `nvim/` | `docs/nvim.md` |
 | `tmux/` | `docs/tmux.md` |
 | `yazi/` | `docs/yazi.md` |
@@ -48,10 +49,12 @@ Keep `docs/` in sync with the actual dotfiles state. Docs live in the Obsidian v
 ## Adding a new tool
 
 1. Create `~/Documents/Taccuino Cerusico/60 - Progetti/dotfiles/dotfiles - <tool>.md`
-2. Add symlink: `ln -sf "$VAULT/dotfiles - <tool>.md" dotfiles/docs/<tool>.md`
+2. Add symlink locally: `ln -sf "$VAULT/dotfiles - <tool>.md" dotfiles/docs/<tool>.md`
 3. Add entry to `docs/index.md` wikilink list
 4. Add row to the mapping table in this skill
-5. Add mapping to `setup.sh` docs section
+5. Add the `{ src, dest }` pair to the `loop:` in `ansible/roles/macos/tasks/main.yml`
+   (`Symlink docs from Obsidian vault` task) — this is what recreates the symlink on a
+   fresh machine or re-run; `setup.sh` is legacy and no longer does this
 6. Add the path to the case-statement in `.claude/hooks/docs-staleness-check.sh`
 
 ## Automation — Stop hook (staleness reminder)

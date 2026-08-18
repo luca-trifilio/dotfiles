@@ -1,24 +1,26 @@
 ---
 name: kubectl-setup
-description: Use when the user asks to "install kubectl", "set up kubens", "configure kubernetes CLI tools", or needs to make kubectl/kubens/kubectx replicable via dotfiles Brewfile.
+description: Use when the user asks to "install kubectl", "set up kubens", "configure kubernetes CLI tools", or needs to make kubectl/kubens/kubectx replicable via dotfiles Ansible package list.
 ---
 
 # kubectl + kubens/kubectx Setup
 
-## State (as of 2026-06)
+## State (as of 2026-08)
 
 - `kubectl` 1.36.1 — installed via `brew install kubectl`
-- `kubectx` / `kubens` 0.11.0 — installed, managed via Brewfile
-- `k9s` — installed, managed via Brewfile
+- `kubectx` / `kubens` 0.11.0 — installed, managed via Ansible
+- `k9s` — installed, managed via Ansible
 
-## Brewfile (brew/Brewfile)
+## Package list (ansible/group_vars/all/main.yml)
 
-All three tools are in `brew/Brewfile` under the CLI tools section:
+All three tools are in `brew_packages` (see ADR-0002 — `brew/Brewfile` was removed,
+`group_vars` is the source of truth):
 
-```
-brew "k9s"
-brew "kubectl"
-brew "kubectx"
+```yaml
+brew_packages:
+  - k9s
+  - kubectl
+  - kubectx
 ```
 
 ## Aliases
@@ -34,8 +36,10 @@ alias kx='kubectx'
 
 ## Replicating on a new machine
 
+Handled by the `install` tag in the Ansible playbook (see `ansible/README.md`):
+
 ```bash
-brew bundle --file=brew/Brewfile
+ansible-playbook playbooks/site.yml --limit <profile>-mac --tags install
 ```
 
 Aliases come automatically from stow + OMZ `kubectl` plugin.

@@ -1,7 +1,8 @@
 # Dotfiles — Ansible
 
 Idempotent setup for the dotfiles, replacing the imperative `setup.sh` + Stow workflow.
-Stow stays the symlink engine; the Brewfile package set is migrated into `group_vars`.
+Stow stays the symlink engine; Homebrew packages live in `group_vars` (see ADR-0002 —
+`brew/Brewfile` was removed, it had drifted and was no longer a reliable rollback snapshot).
 
 Two profiles, selected with `--limit`:
 
@@ -94,14 +95,16 @@ overwritten — do not edit it by hand, edit the vault instead.
 
 ## Rollback to Stow-only
 
-The Ansible layer is additive: the underlying engine is still Stow + Brewfile, so reverting
-is just running the legacy commands manually.
+The Ansible layer is additive: the underlying symlink engine is still Stow, so reverting
+package management is just installing straight from `group_vars` instead of `brew bundle`.
 
 ```zsh
 cd ~/Progetti/dotfiles
 
-# Packages
-brew bundle install --file=brew/Brewfile
+# Packages — read straight from group_vars/all/main.yml (brew_taps, brew_packages, brew_casks)
+brew tap $(yq '.brew_taps[]' ansible/group_vars/all/main.yml)
+brew install $(yq '.brew_packages[]' ansible/group_vars/all/main.yml)
+brew install --cask $(yq '.brew_casks[]' ansible/group_vars/all/main.yml)
 
 # XDG symlinks
 stow .

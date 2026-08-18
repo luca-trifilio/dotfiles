@@ -277,6 +277,7 @@
     - { src: "dotfiles - brew.md", dest: "brew.md" }
     - { src: "dotfiles - fzf.md", dest: "fzf.md" }
     - { src: "dotfiles - git.md", dest: "git.md" }
+    - { src: "dotfiles - herdr.md", dest: "herdr.md" }
     - { src: "dotfiles - nvim.md", dest: "nvim.md" }
     - { src: "dotfiles - tmux.md", dest: "tmux.md" }
     - { src: "dotfiles - yazi.md", dest: "yazi.md" }

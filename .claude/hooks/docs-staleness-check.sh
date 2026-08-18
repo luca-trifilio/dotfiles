@@ -23,9 +23,9 @@ while IFS= read -r f; do
   [ -z "$f" ] && continue
   case "$f" in
     aerospace/*)                    add aerospace ;;
+    ansible/group_vars/*/main.yml)  add brew; add ansible ;;
     ansible/*)                      add ansible ;;
     atuin/*)                        add atuin ;;
-    brew/Brewfile)                  add brew ;;
     zsh/fzf.zsh|bat/*|fzf-git.sh/*) add fzf ;;
     gitconfig/*|git/*)              add git ;;
     herdr/*)                        add herdr ;;
