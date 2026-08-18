@@ -51,6 +51,7 @@ brew_packages:
   - git
   - git-delta
   - gnupg
+  - herdr
   - imagemagick
   - jq
   - kanata

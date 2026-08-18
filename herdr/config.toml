@@ -1,0 +1,9 @@
+# herdr configuration
+# Generated during initial setup on 2026-08-18.
+# Full commented reference: `herdr --default-config`
+
+[theme]
+name = "catppuccin-macchiato"
+
+[ui.sidebar.agents.rows_by_agent]
+claude = [["state_icon", "workspace", "tab"], ["terminal_title_stripped"], ["agent"]]

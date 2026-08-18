@@ -28,6 +28,7 @@ while IFS= read -r f; do
     brew/Brewfile)                  add brew ;;
     zsh/fzf.zsh|bat/*|fzf-git.sh/*) add fzf ;;
     gitconfig/*|git/*)              add git ;;
+    herdr/*)                        add herdr ;;
     nvim/*)                         add nvim ;;
     tmux/*)                         add tmux ;;
     yazi/*)                         add yazi ;;
