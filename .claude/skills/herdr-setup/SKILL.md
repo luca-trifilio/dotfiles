@@ -62,6 +62,34 @@ string. Mixing `loop_control.loop_var: X` with `{{ item }}` elsewhere in
 the same task is a real, easy-to-make bug — `ansible-playbook --check`
 catches it immediately ("'item' is undefined").
 
+Gotcha: `launchctl bootstrap` run immediately after `launchctl bootout`
+for the same label can transiently fail with `Bootstrap failed: 5:
+Input/output error` — a launchd race (bootout is async). The Ansible
+reload handler (bootout then bootstrap in the same play) can hit this on
+one session while a sibling session in the same loop succeeds. Retry the
+single failed `launchctl bootstrap gui/<uid> <plist path>` directly; it
+succeeds a moment later. Don't treat this as a real deploy failure.
+
+Gotcha: **launchd does not give a LaunchAgent the interactive shell's
+PATH** — only `/usr/bin:/bin:/usr/sbin:/sbin` by default, even though a
+server process started directly from an interactive terminal (e.g. the
+unnamed `default` session before any LaunchAgent existed for it) keeps
+whatever rich PATH that terminal had. This matters concretely for
+Herdr's Settings → Integrations panel ("agent integrations... let agents
+report state directly"): it does a PATH lookup for each supported agent
+CLI (`claude`, `codex`, `opencode`, etc.) *inside the server process*,
+not the terminal you're viewing the TUI from. A LaunchAgent-managed
+session will show every agent as "not found" even when the CLI is
+installed and on your normal shell's PATH. Fix: add an
+`EnvironmentVariables` dict with an explicit `PATH` to the plist,
+covering wherever agent CLIs actually live (`~/.local/bin` for `claude`,
+`~/.bun/bin`, `~/.opencode/bin`, `~/go/bin`, `~/.nix-profile/bin`, the
+Homebrew prefix). Verify with `launchctl print gui/<uid>/<label> | grep
+-A5 "environment ="` — the `environment` block should show your PATH,
+not just `default environment` (which stays the bare launchd default
+underneath it). Then re-check Settings → Integrations in the TUI to
+confirm an agent flips from "not found" to "available".
+
 ## Safety — `herdr session stop`/`delete` is disruptive
 
 These commands drop any client currently attached to that session without

@@ -19,6 +19,16 @@
   <key>KeepAlive</key>
   <true/>
 
+  <!-- launchd's default PATH (/usr/bin:/bin:/usr/sbin:/sbin) hides every
+       agent CLI (claude, opencode, etc.) from Herdr's Integrations panel,
+       which shells out and checks PATH in THIS process, not the terminal's.
+       Cover the common agent-CLI install locations explicitly. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.HOME }}/.bun/bin:{{ ansible_env.HOME }}/.opencode/bin:{{ ansible_env.HOME }}/go/bin:{{ ansible_env.HOME }}/.nix-profile/bin:{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
   <key>StandardOutPath</key>
   <string>{{ ansible_env.HOME }}/Library/Logs/herdr-{{ herdr_session_name }}.log</string>
   <key>StandardErrorPath</key>
