@@ -66,4 +66,13 @@ return {
       current_line_blame = true,
     },
   },
+  {
+    "pwntester/octo.nvim",
+    opts = {
+      -- `github-personal` is an SSH config alias (see gitconfig/.gitconfig), not a
+      -- real host. Octo reads it from `git remote get-url` (which applies git's
+      -- insteadOf rewriting) and needs this mapping to resolve it back to github.com.
+      ssh_aliases = { ["github-personal"] = "github.com" },
+    },
+  },
 }
