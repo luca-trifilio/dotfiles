@@ -4,7 +4,7 @@ onboarding = false
 # Full commented reference: `herdr --default-config`
 
 [theme]
-name = "catppuccin-macchiato"
+name = "catppuccin"
 
 [ui.sidebar.agents.rows_by_agent]
 claude = [["state_icon", "workspace", "tab"], ["terminal_title_stripped"], ["agent"]]
