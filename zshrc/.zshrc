@@ -19,6 +19,7 @@ source ~/.config/zsh/aws.zsh
 source ~/.config/zsh/vimode.zsh
 eval "$(atuin init zsh)"
 eval "$(starship init zsh)"
+eval "$(direnv hook zsh)"
 source ~/.config/zsh/zoxide.zsh
 source ~/.config/zsh/fzf.zsh
 

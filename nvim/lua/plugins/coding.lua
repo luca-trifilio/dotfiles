@@ -73,6 +73,14 @@ return {
       -- real host. Octo reads it from `git remote get-url` (which applies git's
       -- insteadOf rewriting) and needs this mapping to resolve it back to github.com.
       ssh_aliases = { ["github-personal"] = "github.com" },
+      -- Octo runs `gh` in a sandboxed job env that only whitelists GITHUB_TOKEN,
+      -- not GH_TOKEN (see octo/gh/init.lua env_vars). Per-project .envrc files
+      -- (e.g. homelab) export GH_TOKEN to pick a specific `gh` account, so forward
+      -- it here under the name Octo actually reads, or it silently falls back to
+      -- gh's default keyring account and fails on private repos.
+      gh_env = function()
+        return { GITHUB_TOKEN = vim.env.GH_TOKEN }
+      end,
     },
   },
 }
