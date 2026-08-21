@@ -11,8 +11,9 @@
 vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
 
 -- Enable visual line wrapping everywhere (LazyVim disables it by default; no spellcheck).
--- `wrap` is window-local, so FileType alone misses windows created after the buffer
--- (e.g. Octo diff panes). BufWinEnter/WinEnter catch the window itself.
+-- `wrap` is window-local, so FileType alone misses windows created after the buffer.
+-- Octo swaps buffers into existing windows via nvim_win_set_buf (diff panes, comment
+-- threads), which resets the window's wrap — hence the buffer/window event spread.
 -- Excluded filetypes keep nowrap on purpose: list/tree panes rely on horizontal truncation.
 local nowrap_filetypes = {
   octo_panel = true,
@@ -23,7 +24,7 @@ local nowrap_filetypes = {
   qf = true,
 }
 
-vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "WinEnter" }, {
+vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "BufEnter", "WinEnter", "WinNew" }, {
   group = vim.api.nvim_create_augroup("user_wrap", { clear = true }),
   callback = function()
     if nowrap_filetypes[vim.bo.filetype] then
