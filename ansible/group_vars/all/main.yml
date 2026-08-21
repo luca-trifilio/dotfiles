@@ -110,6 +110,7 @@ brew_casks:
   - font-jetbrains-mono-nerd-font
   - kitty
   - ngrok
+  - readest
 
 # Casks that use .pkg installers and require sudo (e.g. upgrades call /usr/sbin/installer).
 # Installed with ignore_errors so non-interactive runs (post-merge hook) don't abort.
