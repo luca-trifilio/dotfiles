@@ -10,6 +10,19 @@ git_signing_key: "~/.ssh/id_ed25519.pub"
 # Feature toggles (defaults for both machines)
 enable_kanata: true
 
+# Claude Code permission deny-rules protecting the SOPS age private key
+# (see zsh/secrets.zsh) from being read directly by Claude/agents. Merged
+# into ~/.claude/settings.json idempotently by the stow role, since that
+# file is real/unmanaged (not stow-symlinked) and holds unrelated personal
+# config we don't want to fully sync.
+claude_secrets_deny_rules:
+  - "Read(~/.config/sops/age/keys.txt)"
+  - "Read(~/Library/Application Support/sops/age/keys.txt)"
+  - "Bash(cat ~/.config/sops/age/keys.txt*)"
+  - "Bash(cat ~/Library/Application Support/sops/age/keys.txt*)"
+  - "Bash(*~/.config/sops/age/keys.txt*)"
+  - "Bash(*~/Library/Application Support/sops/age/keys.txt*)"
+
 # Manage the homelab SSH host block in ~/.ssh/config (both machines).
 # Rendered into a blockinfile-marked region so the colima includes and the
 # github.com / github-personal identity blocks are left untouched.

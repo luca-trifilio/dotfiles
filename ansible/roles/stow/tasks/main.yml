@@ -42,6 +42,39 @@
   when: not ansible_check_mode
   tags: stow
 
+# --- Claude Code secrets deny-rules (protect SOPS age key from Read/cat) ---
+# ~/.claude/settings.json is real, unmanaged, personal config (not stow-
+# symlinked), so merge just the deny rules idempotently instead of syncing
+# the whole file.
+- name: Ensure ~/.claude directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.claude"
+    state: directory
+    mode: "0700"
+  tags: stow
+
+- name: Ensure ~/.claude/settings.json exists
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.claude/settings.json"
+    content: "{}\n"
+    force: false
+    mode: "0600"
+  tags: stow
+
+- name: Merge Claude Code secrets deny-rules into ~/.claude/settings.json
+  ansible.builtin.shell: |
+    set -euo pipefail
+    jq --argjson new '{{ claude_secrets_deny_rules | to_json }}' \
+      '.permissions.deny = ((.permissions.deny // []) + $new | unique)' \
+      "{{ ansible_env.HOME }}/.claude/settings.json" > "{{ ansible_env.HOME }}/.claude/settings.json.tmp"
+    diff -q "{{ ansible_env.HOME }}/.claude/settings.json" "{{ ansible_env.HOME }}/.claude/settings.json.tmp" >/dev/null \
+      && rm "{{ ansible_env.HOME }}/.claude/settings.json.tmp" \
+      || { mv "{{ ansible_env.HOME }}/.claude/settings.json.tmp" "{{ ansible_env.HOME }}/.claude/settings.json"; echo CHANGED; }
+  register: claude_deny_merge
+  changed_when: "'CHANGED' in claude_deny_merge.stdout"
+  when: not ansible_check_mode
+  tags: stow
+
 # --- Templated gitconfig-local (work: email; personal: Forgejo CF headers) ---
 - name: Template ~/.gitconfig-local
   ansible.builtin.template:
