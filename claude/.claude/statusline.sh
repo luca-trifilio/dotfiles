@@ -49,6 +49,21 @@ for ((i=0; i<filled; i++)); do bar+="█"; done
 for ((i=0; i<empty; i++)); do bar+="░"; done
 bar+="] ${pct}%${RESET}"
 
+# Token usage / context window size
+used_tokens=$(echo "$input" | jq -r '(.context_window.current_usage.input_tokens // 0) + (.context_window.current_usage.output_tokens // 0) + (.context_window.current_usage.cache_creation_input_tokens // 0) + (.context_window.current_usage.cache_read_input_tokens // 0)')
+window_size=$(echo "$input" | jq -r '.context_window.context_window_size // 0')
+fmt_tokens() {
+  local n=$1
+  if [ "$n" -ge 1000000 ]; then
+    LC_ALL=C awk -v n="$n" 'BEGIN{printf "%.1fM", n/1000000}'
+  elif [ "$n" -ge 1000 ]; then
+    LC_ALL=C awk -v n="$n" 'BEGIN{printf "%.0fK", n/1000}'
+  else
+    echo "$n"
+  fi
+}
+tokens_info="${DIM}$(fmt_tokens "$used_tokens")/$(fmt_tokens "$window_size")${RESET}"
+
 # Cost
 cost=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 cost_fmt=$(echo "$cost" | LC_ALL=C awk '{printf "%.2f", $1}')
@@ -68,7 +83,7 @@ output="${CYAN}${dir_name}${RESET}"
 [ -n "$git_info" ] && output+=" ${SEP} ${git_info}"
 [ -n "$vim_info" ] && output+=" ${SEP} ${vim_info}"
 output+=" ${SEP} ${MAGENTA}${model}${RESET}"
-output+=" ${SEP} ${bar}"
+output+=" ${SEP} ${bar} ${tokens_info}"
 output+=" ${SEP} 💰 ${GREEN}\$${cost_fmt}${RESET}"
 
 echo -e "$output"
