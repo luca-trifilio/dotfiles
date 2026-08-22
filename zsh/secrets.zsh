@@ -11,6 +11,10 @@
 # Edit values with `secrets-edit` ($EDITOR on decrypted content, re-encrypts on
 # save). Never paste secret values into a command line — they land in history.
 
+# Per-machine override (gitignored) for machines where homelab isn't cloned
+# at the default path, e.g.: echo 'CLI_SECRETS_FILE=~/wherever/homelab/secrets/cli.sops.yaml' > ~/.config/zsh/secrets.local.zsh
+[[ -r ~/.config/zsh/secrets.local.zsh ]] && source ~/.config/zsh/secrets.local.zsh
+
 : ${CLI_SECRETS_FILE:="$HOME/Progetti/homelab/secrets/cli.sops.yaml"}
 
 # .zshenv runs before PATH is set up, so locate sops explicitly.

@@ -13,3 +13,5 @@ karabiner/automatic_backups/
 /docs/*
 !/docs/adr/
 .claude/tasks/
+# Per-machine override (e.g. CLI_SECRETS_FILE if homelab isn't at ~/Progetti/homelab)
+zsh/secrets.local.zsh
