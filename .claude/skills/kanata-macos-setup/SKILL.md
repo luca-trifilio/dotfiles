@@ -24,11 +24,14 @@ If the daemon is missing or can't connect, kanata loops with `connect_failed asi
 | Path | Purpose |
 |---|---|
 | `kanata/kanata.kbd` | Config (XDG, stowed to `~/.config/kanata/`) |
-| `kanata-daemon/com.lucatrifilio.kanata.plist` | LaunchDaemon template (excluded from stow, installed to `/Library/LaunchDaemons/` via the ansible `macos` role) |
+| `kanata-daemon/com.lucatrifilio.kanata.plist` | LaunchDaemon template used only by the manual/README bootstrap flow (`sed __HOME__` + `sudo tee`) — the ansible role uses its own separate jinja template below, not this file |
+| `kanata-daemon/karabiner-core-service-watchdog.sh` | Watchdog script, boots out KE Core-Service/agents every 15s (see troubleshooting below) |
+| `ansible/roles/macos/templates/kanata.plist.j2` | Real jinja template ansible installs to `/Library/LaunchDaemons/com.lucatrifilio.kanata.plist` |
+| `ansible/roles/macos/templates/karabiner-watchdog.plist.j2` | Jinja template ansible installs to `/Library/LaunchDaemons/com.lucatrifilio.karabiner-watchdog.plist` |
 
 Add `--ignore=^kanata-daemon$` to `.stowrc`.
 
-The actual install path is `ansible/roles/macos/tasks/main.yml` (`enable_kanata` var) — it templates `kanata.plist.j2` to `/Library/LaunchDaemons/com.lucatrifilio.kanata.plist`, bootstraps it, and disables the KE Core-Service daemon + GUI agents listed below. It does **not** install any separate VirtualHIDDevice-Daemon plist — KE's own bundled one is used as-is.
+The actual install path is `ansible/roles/macos/tasks/main.yml` (`enable_kanata` var) — it templates `kanata.plist.j2` to `/Library/LaunchDaemons/com.lucatrifilio.kanata.plist`, bootstraps it, disables the KE Core-Service daemon + GUI agents listed below, and installs/bootstraps the watchdog LaunchDaemon (see below). It does **not** install any separate VirtualHIDDevice-Daemon plist — KE's own bundled one is used as-is.
 
 ## kanata.kbd template
 
@@ -256,6 +259,26 @@ done
 sudo launchctl bootout system/com.lucatrifilio.kanata
 sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
 ```
+
+---
+
+## Troubleshooting: "Waiting for a connection from Karabiner-Core-Service to Karabiner-VirtualHIDDevice-Daemon" popup in KE Settings.app
+
+**Symptom**: opening Karabiner-Elements.app (esp. clicking into Simple/Complex Modifications tabs) shows an infinite spinner dialog. kanata itself keeps working fine (`tail /tmp/kanata.log` still shows `virtual_hid_keyboard_ready true`) — this is cosmetic, not a functional break.
+
+**Cause**: `launchctl disable` on Core-Service/its agents (see entry above) only sets the persistent disabled bit — it does not stop KE Settings.app from force-starting those processes directly when you open it or navigate its tabs (confirmed: `/var/db/com.apple.xpc.launchd/disabled*.plist` mtime does not change when the popup appears, so the app is not going through the normal `launchctl enable`/`bootstrap` path). Once Core-Service starts, it can never actually connect — kanata already holds the VirtualHIDDevice-Daemon connection exclusively — so the dialog spins forever until Core-Service is killed again.
+
+Because the disabled bit never flips, a `WatchPaths`-based launchd trigger on the disabled-state file **won't** catch this — there's nothing to watch. The only reliable fix is a polling watchdog.
+
+**Fix**: `com.lucatrifilio.karabiner-watchdog` — a root LaunchDaemon (`ansible/roles/macos/templates/karabiner-watchdog.plist.j2` → `/Library/LaunchDaemons/`) that runs `kanata-daemon/karabiner-core-service-watchdog.sh` every 15s (`StartInterval`), boot-outing Core-Service + its GUI agents (same list as the entry above) if found. Installed automatically via the ansible `macos` role when `enable_kanata`. Manual bootstrap:
+```bash
+sudo launchctl bootout system/com.lucatrifilio.karabiner-watchdog 2>/dev/null || true
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.karabiner-watchdog.plist
+sudo launchctl print system/com.lucatrifilio.karabiner-watchdog   # state = running
+cat /tmp/karabiner-watchdog.log   # empty unless it actually had to boot something out
+```
+
+**Note**: an already-open, already-stuck Settings window won't refresh itself just because the watchdog kills the backend process — quit (Cmd+Q) and reopen it. Whether reopening + navigating tabs still briefly flashes the dialog before the watchdog clears it (worst case ~15s) was not confirmed by direct reproduction, only inferred from the mechanism.
 
 ---
 

@@ -66,3 +66,18 @@
   become: true
   changed_when: true
   listen: reload kanata daemon
+
+- name: Bootout karabiner watchdog daemon (for reload)
+  ansible.builtin.command:
+    cmd: launchctl bootout system/com.lucatrifilio.karabiner-watchdog
+  become: true
+  failed_when: false
+  changed_when: false
+  listen: reload karabiner watchdog daemon
+
+- name: Bootstrap karabiner watchdog daemon (for reload)
+  ansible.builtin.command:
+    cmd: launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.karabiner-watchdog.plist
+  become: true
+  changed_when: true
+  listen: reload karabiner watchdog daemon

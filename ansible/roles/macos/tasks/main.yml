@@ -237,6 +237,48 @@
     - macos
     - become
 
+# KE Settings.app force-starts Core-Service on launch, bypassing `launchctl disable`
+# (the disabled bit never flips, so a WatchPaths-based trigger can't catch it) —
+# this watchdog just re-boots-out the offenders every 15s.
+- name: Install Karabiner Core-Service watchdog LaunchDaemon plist
+  ansible.builtin.template:
+    src: karabiner-watchdog.plist.j2
+    dest: /Library/LaunchDaemons/com.lucatrifilio.karabiner-watchdog.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+  become: true
+  when: enable_kanata
+  notify: reload karabiner watchdog daemon
+  tags:
+    - macos
+    - become
+
+- name: Check if karabiner watchdog daemon is already loaded
+  ansible.builtin.command:
+    cmd: launchctl print system/com.lucatrifilio.karabiner-watchdog
+  register: macos_karabiner_watchdog_status
+  failed_when: false
+  changed_when: false
+  become: true
+  when: enable_kanata
+  tags:
+    - macos
+    - become
+
+- name: Bootstrap karabiner watchdog daemon (first run only)
+  ansible.builtin.command:
+    cmd: launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.karabiner-watchdog.plist
+  become: true
+  changed_when: true
+  when:
+    - enable_kanata
+    - not ansible_check_mode
+    - macos_karabiner_watchdog_status.rc | default(1) != 0
+  tags:
+    - macos
+    - become
+
 # --- Yazi flavors ---
 - name: Install yazi flavors (ya pkg install)
   ansible.builtin.command:
