@@ -45,6 +45,10 @@ _cli_secrets_load() {
     export "$line"
   done <<< "$decrypted"
 
+  # Terraform reads TF_VAR_cloudflare_api_token; alias it instead of storing
+  # the same token twice in the encrypted store.
+  [[ -n "$CLOUDFLARE_API_TOKEN" ]] && export TF_VAR_cloudflare_api_token="$CLOUDFLARE_API_TOKEN"
+
   # Children inherit the exports, so they can skip decrypting again.
   export CLI_SECRETS_LOADED=1
 }
@@ -60,10 +64,14 @@ secrets-status() {
   local name
   print "store: $CLI_SECRETS_FILE"
   print "key:   ${SOPS_AGE_KEY_FILE:-<none found>}"
-  for name in CLOUDFLARE_API_TOKEN TF_VAR_cloudflare_api_token \
-              B2_ACCESS_KEY_ID B2_SECRET_ACCESS_KEY; do
+  for name in CLOUDFLARE_API_TOKEN B2_ACCESS_KEY_ID B2_SECRET_ACCESS_KEY; do
     if [[ -n "${(P)name}" ]]; then print "  set    $name"; else print "  empty  $name"; fi
   done
+  if [[ -n "$TF_VAR_cloudflare_api_token" ]]; then
+    print "  set    TF_VAR_cloudflare_api_token (aliased from CLOUDFLARE_API_TOKEN)"
+  else
+    print "  empty  TF_VAR_cloudflare_api_token"
+  fi
 }
 
 # Backblaze B2 speaks the S3 API, so tooling expects the AWS_* names. Map them
