@@ -132,3 +132,22 @@ repo, those changes land in the tracked file automatically, no manual
 sync needed (but also no diff review before it happens — check
 `git diff` after a herdr settings session if you want to see what
 changed).
+
+Gotcha: **`switch_workspace` and `switch_tab` collide on the same default
+combo** (`prefix+1..9` is `switch_tab`'s default; `switch_workspace` ships
+unset). Setting `switch_workspace = "prefix+1..9"` for plain-number
+workspace switching means `switch_tab` must be explicitly re-homed to a
+different combo (e.g. `prefix+shift+1..9`) in the same `[keys]` block, or
+the two will fight over the same keys. There is no built-in sidebar token
+for a workspace's index/number (checked `herdr --default-config` and the
+live docs on 0.8.2) — the only way to see a workspace's number at a glance
+is to encode it in the workspace name itself (e.g. `1-dotfiles`).
+
+Gotcha: **keybinding changes in config.toml require restarting the herdr
+session** — they are not hot-reloaded into an already-running server.
+`herdr session list` shows all named sessions (e.g. `work`, `personal`)
+with status and attachment; always check it before `herdr session
+stop <name>` to confirm which one to restart and that nothing important
+is live in it (stop is instant and disruptive — see Safety section above).
+Two differently-named sessions can both live on the same machine — don't
+assume a session name maps 1:1 to a physical Mac.
