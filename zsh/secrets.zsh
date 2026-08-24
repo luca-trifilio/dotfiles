@@ -68,7 +68,7 @@ secrets-status() {
   local name
   print "store: $CLI_SECRETS_FILE"
   print "key:   ${SOPS_AGE_KEY_FILE:-<none found>}"
-  for name in CLOUDFLARE_API_TOKEN B2_ACCESS_KEY_ID B2_SECRET_ACCESS_KEY; do
+  for name in CLOUDFLARE_API_TOKEN B2_ACCESS_KEY_ID B2_SECRET_ACCESS_KEY KARAKEEP_API_KEY KARAKEEP_SERVER_ADDR; do
     if [[ -n "${(P)name}" ]]; then print "  set    $name"; else print "  empty  $name"; fi
   done
   if [[ -n "$TF_VAR_cloudflare_api_token" ]]; then
