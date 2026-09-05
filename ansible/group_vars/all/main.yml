@@ -78,8 +78,10 @@ brew_packages:
   - kanata
   - jdtls
   - k9s
+  - kubeconform
   - kubectl
   - kubectx
+  - kustomize
   - lazydocker
   - lazygit
   - neovim
