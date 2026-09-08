@@ -53,6 +53,7 @@ homebrew_prefix: "/opt/homebrew"
 
 brew_taps:
   - FelixKratz/formulae
+  - floci-io/floci
   - gromgit/brewtils
   - keidarcy/tap
   - nikitabobko/tap
@@ -116,6 +117,10 @@ brew_packages_dev:
 # Third-party tap formulae (common)
 brew_packages_tap:
   - FelixKratz/formulae/borders
+  # Floci — local AWS emulator CLI; drives a docker container, needs colima running.
+  # Works with zero env vars: floci's default /var/run/docker.sock resolves inside
+  # the Lima VM to colima's daemon socket; the `colima` docker context handles the API.
+  - floci-io/floci/floci
   - gromgit/brewtils/taproom
 
 # Common casks

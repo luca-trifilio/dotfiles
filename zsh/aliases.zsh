@@ -27,6 +27,8 @@ alias kx='kubectx'
 alias hp='herdr --session personal'
 alias hw='herdr --session work'
 
+alias floci-ui='open http://localhost:4566/_floci/ui'
+
 function ts() { ~/.config/tmux/session-picker.sh }
 
 function y() {
