@@ -17,7 +17,7 @@ switch_workspace = "prefix+1..9"
 switch_tab = "prefix+shift+1..9"
 previous_agent = "prefix+alt+["
 next_agent = "prefix+alt+]"
-focus_agent = "prefix+alt+1..9"
+focus_agent = "prefix+ctrl+1..9"
 
 [ui.toast]
 delivery = "herdr"
