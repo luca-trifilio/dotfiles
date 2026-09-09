@@ -53,6 +53,16 @@ _cli_secrets_load() {
   # the same token twice in the encrypted store.
   [[ -n "$CLOUDFLARE_API_TOKEN" ]] && export TF_VAR_cloudflare_api_token="$CLOUDFLARE_API_TOKEN"
 
+  # CONTEXT7_API_KEY is work-only: it's in the shared store (so it syncs to
+  # every machine), but only exported on the work Mac. Unset it elsewhere so
+  # the Context7 MCP plugin stays unauthenticated on personal machines.
+  # ~/.config/zsh/machine_profile is written by the Ansible `shell` role from
+  # inventory group membership (work/personal) — see ansible/inventory.yml.
+  local _profile_file="$HOME/.config/zsh/machine_profile"
+  if [[ ! -r "$_profile_file" || "$(<$_profile_file)" != "work" ]]; then
+    unset CONTEXT7_API_KEY
+  fi
+
   # Children inherit the exports, so they can skip decrypting again.
   export CLI_SECRETS_LOADED=1
 }
@@ -68,7 +78,7 @@ secrets-status() {
   local name
   print "store: $CLI_SECRETS_FILE"
   print "key:   ${SOPS_AGE_KEY_FILE:-<none found>}"
-  for name in CLOUDFLARE_API_TOKEN B2_ACCESS_KEY_ID B2_SECRET_ACCESS_KEY KARAKEEP_API_KEY KARAKEEP_SERVER_ADDR; do
+  for name in CLOUDFLARE_API_TOKEN B2_ACCESS_KEY_ID B2_SECRET_ACCESS_KEY KARAKEEP_API_KEY KARAKEEP_SERVER_ADDR CONTEXT7_API_KEY; do
     if [[ -n "${(P)name}" ]]; then print "  set    $name"; else print "  empty  $name"; fi
   done
   if [[ -n "$TF_VAR_cloudflare_api_token" ]]; then

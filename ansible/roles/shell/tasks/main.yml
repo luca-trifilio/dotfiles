@@ -1,4 +1,15 @@
 ---
+- name: Write machine profile for secrets.zsh to gate on
+  # work/personal, derived from inventory group membership (see inventory.yml).
+  # secrets.zsh reads this file to decide which secrets are safe to export —
+  # e.g. CONTEXT7_API_KEY only on the work machine — without hardcoding a
+  # hostname string that duplicates group_vars/{profile}/main.yml.
+  ansible.builtin.copy:
+    content: "{{ 'work' if 'work' in group_names else 'personal' }}\n"
+    dest: "{{ ansible_env.HOME }}/.config/zsh/machine_profile"
+    mode: "0644"
+  tags: shell
+
 - name: Install Oh My Zsh
   ansible.builtin.command:
     cmd: >-

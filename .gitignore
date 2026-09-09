@@ -15,3 +15,5 @@ karabiner/automatic_backups/
 .claude/tasks/
 # Per-machine override (e.g. CLI_SECRETS_FILE if homelab isn't at ~/Progetti/homelab)
 zsh/secrets.local.zsh
+# Written by ansible/roles/shell (work/personal) — machine-generated, not tracked content
+zsh/machine_profile
