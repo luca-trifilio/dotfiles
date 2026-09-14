@@ -83,7 +83,7 @@ return {
       },
       workspaces = {
         {
-          name = "work",
+          name = "taccuino",
           path = "~/Documents/Taccuino Cerusico",
         },
       },
