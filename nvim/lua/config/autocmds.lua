@@ -37,3 +37,18 @@ vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "BufEnter", "WinEnter",
 
 -- Disable marksman LSP: obsidian.nvim handles wikilink resolution
 vim.lsp.enable("marksman", false)
+
+-- Auto-reload buffers changed on disk (e.g. Claude Code editing the vault from a tmux pane).
+-- LazyVim's default only checktime's on FocusGained, which misses edits made while nvim
+-- stays focused in the same tmux session. CursorHold covers idle-in-buffer; the rest catch
+-- the moment you switch back to a buffer that changed underneath you.
+vim.o.autoread = true
+
+vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI", "BufEnter", "FocusGained" }, {
+  group = vim.api.nvim_create_augroup("user_checktime", { clear = true }),
+  callback = function()
+    if vim.fn.mode() ~= "c" then
+      vim.cmd("checktime")
+    end
+  end,
+})

@@ -26,6 +26,7 @@ while IFS= read -r f; do
     ansible/group_vars/*/main.yml)  add brew; add ansible ;;
     ansible/*)                      add ansible ;;
     atuin/*)                        add atuin ;;
+    claude/*)                       add claude ;;
     zsh/fzf.zsh|bat/*|fzf-git.sh/*) add fzf ;;
     gitconfig/*|git/*)              add git ;;
     herdr/*)                        add herdr ;;
