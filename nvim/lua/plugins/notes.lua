@@ -1,5 +1,16 @@
 return {
   {
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        -- obsidian.nvim handles wikilink resolution; enabling marksman here (rather than
+        -- vim.lsp.enable in autocmds.lua) avoids a startup race where marksman can attach
+        -- via mason-lspconfig's automatic enable before a later disable call runs.
+        marksman = { enabled = false },
+      },
+    },
+  },
+  {
     "saghen/blink.cmp",
     opts = {
       sources = {
