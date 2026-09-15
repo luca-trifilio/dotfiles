@@ -11,6 +11,12 @@ return {
     },
   },
   {
+    -- Vim's formatoptions/comments (fb: flags) only handles hanging-indent for
+    -- soft-wrapped continuation of an existing bullet, not creating a new one on <CR>.
+    "bullets-vim/bullets.vim",
+    ft = "markdown",
+  },
+  {
     "saghen/blink.cmp",
     opts = {
       sources = {
