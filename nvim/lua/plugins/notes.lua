@@ -62,6 +62,34 @@ return {
           vim.opt_local.spelllang = "it,en"
         end,
       })
+      -- Buffer-local nav keymaps, scoped to vault notes only (fires only for buffers
+      -- obsidian.nvim recognizes as notes, so it never leaks to other markdown files).
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "ObsidianNoteEnter",
+        callback = function(ev)
+          local api = require("obsidian.api")
+          -- <CR> is already bound to smart_action via obsidian.nvim's default
+          -- keymap (vim.g.obsidian_default_keymap); rebind here only for clarity/ownership.
+          vim.keymap.set("n", "<CR>", require("obsidian.actions").smart_action, {
+            expr = true,
+            buffer = ev.buf,
+            desc = "Obsidian Smart Action",
+          })
+          vim.keymap.set("n", "<leader>ch", "<cmd>Obsidian toggle_checkbox<cr>", {
+            buffer = ev.buf,
+            desc = "toggle checkbox",
+          })
+          -- gf follows wikilinks inside notes, falls back to plain gf elsewhere/on failure.
+          vim.keymap.set("n", "gf", function()
+            local ok, link = pcall(api.cursor_link)
+            if ok and link then
+              vim.cmd("Obsidian follow_link")
+            else
+              vim.cmd("normal! gf")
+            end
+          end, { buffer = ev.buf, desc = "Obsidian follow link (gf)" })
+        end,
+      })
     end,
     keys = {
       { "<leader>od", "<cmd>Obsidian today<cr>", desc = "today" },
@@ -70,6 +98,8 @@ return {
       { "<leader>on", "<cmd>Obsidian new<cr>", desc = "new note" },
       { "<leader>os", "<cmd>Obsidian search<cr>", desc = "search" },
       { "<leader>ot", "<cmd>Obsidian tags<cr>", desc = "tags" },
+      { "<leader>ob", "<cmd>Obsidian backlinks<cr>", desc = "backlinks" },
+      { "<leader>ol", "<cmd>Obsidian link<cr>", desc = "link selection", mode = "v" },
     },
     event = {
       "BufReadPre " .. vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",
@@ -81,6 +111,11 @@ return {
       ui = {
         enable = false,
       },
+      -- :Obsidian new keeps the title as typed as the filename (frontmatter is disabled,
+      -- so the filename is the note's only identity; no generated ID).
+      note_id_func = function(title)
+        return title
+      end,
       workspaces = {
         {
           name = "taccuino",
