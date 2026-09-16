@@ -117,6 +117,10 @@ return {
       { "<leader>ot", "<cmd>Obsidian tags<cr>", desc = "tags" },
       { "<leader>ob", "<cmd>Obsidian backlinks<cr>", desc = "backlinks" },
       { "<leader>ol", "<cmd>Obsidian link<cr>", desc = "link selection", mode = "v" },
+      { "<leader>or", "<cmd>Obsidian rename<cr>", desc = "rename note" },
+      { "<leader>om", "<cmd>Obsidian template<cr>", desc = "insert template" },
+      { "<leader>oc", "<cmd>Obsidian toc<cr>", desc = "table of contents" },
+      { "<leader>ox", "<cmd>Obsidian extract_note<cr>", desc = "extract note", mode = "v" },
     },
     event = {
       "BufReadPre " .. vim.fn.expand("~") .. "/Documents/Taccuino Cerusico/*.md",
