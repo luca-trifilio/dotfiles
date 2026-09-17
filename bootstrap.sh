@@ -82,6 +82,16 @@ else
   run curl -fsSL https://bun.sh/install | bash
 fi
 
+# ── SDKMAN ────────────────────────────────────────────────────────────────────
+status "SDKMAN"
+if [ -d "$HOME/.sdkman" ]; then
+  echo "  already installed"
+else
+  echo "  will install via curl"
+  run curl -s "https://get.sdkman.io" -o /tmp/sdkman-install.sh
+  run bash /tmp/sdkman-install.sh
+fi
+
 # ── fzf-git (git submodule) ───────────────────────────────────────────────────
 status "fzf-git"
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -105,7 +115,7 @@ fi
 echo ""
 echo "── Manual steps (can't automate)"
 echo "  1. Nerd Font — https://www.nerdfonts.com (set in Ghostty config)"
-echo "  2. Java JDK (optional, nvim-jdtls) — brew install temurin"
+echo "  2. Java JDK (optional, nvim-jdtls) — sdk install java (via SDKMAN)"
 echo "  3. Inside tmux after setup.sh: prefix + I to install plugins"
 echo "  4. Karabiner-Elements — grant Input Monitoring + Accessibility in System Settings > Privacy & Security"
 echo "     Then: System Settings > General > Login Items & Extensions > Driver Extensions — enable Karabiner"
