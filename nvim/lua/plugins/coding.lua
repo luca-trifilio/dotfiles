@@ -81,6 +81,12 @@ return {
       gh_env = function()
         return { GITHUB_TOKEN = vim.env.GH_TOKEN }
       end,
+      -- Default approve_review is <C-a>, which collides with the tmux/herdr prefix.
+      mappings = {
+        submit_win = {
+          approve_review = { lhs = "<C-s>", desc = "approve review", mode = { "n" } },
+        },
+      },
     },
   },
 }
