@@ -39,3 +39,9 @@ function y() {
 	fi
 	rm -f -- "$tmp"
 }
+
+# Work machine only: `claude` uses the work login, `clp` runs Claude Code with the personal login
+# (separate config dir, so a one-time `/login` with the personal account is needed)
+if [[ "$(<~/.config/zsh/machine_profile)" == work ]]; then
+  alias clp='CLAUDE_CONFIG_DIR="$HOME/.claude-personal" claude'
+fi
