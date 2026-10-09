@@ -17,9 +17,12 @@ brew_packages_extra:
 brew_casks_extra: []
 
 # Hindsight project tags: directory -> project name (untagged elsewhere).
-# TODO(work mac): fill in the real paths; keep names identical to personal.
-hindsight_projects: []
-#  - { path: "<work path>", name: "homelab" }
-#  - { path: "<work path>", name: "dotfiles" }
-#  - { path: "<work path>", name: "storie" }
-#  - { path: "<work path>", name: "storie" }  # storie-ios
+# Names are identical to personal; personal repos live under ~/Progetti/Personali.
+hindsight_projects:
+  - { path: "~/Progetti/Personali/homelab", name: "homelab" }
+  - { path: "~/Progetti/dotfiles", name: "dotfiles" }
+  - { path: "~/Progetti/Personali/storie", name: "storie" }
+  - { path: "~/Progetti/Personali/storie-ios", name: "storie" }
+  - { path: "~/Progetti/bck_transaction", name: "transaction" }
+  - { path: "~/Progetti/bck_payment_hub", name: "payment-hub" }
+  - { path: "~/Progetti/bck_payment_hub_gitops", name: "payment-hub" }
