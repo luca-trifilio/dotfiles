@@ -98,6 +98,21 @@
     mode: "0600"
   tags: stow
 
+# --- Templated Hindsight coding-agent config (project tags per profile) ---
+- name: Ensure ~/.hindsight directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.hindsight"
+    state: directory
+    mode: "0700"
+  tags: stow
+
+- name: Template ~/.hindsight/coding-agent.json
+  ansible.builtin.template:
+    src: hindsight-coding-agent.json.j2
+    dest: "{{ ansible_env.HOME }}/.hindsight/coding-agent.json"
+    mode: "0600"
+  tags: stow
+
 # --- git hooks path (auto-apply ansible after git pull via git-hooks/) ---
 - name: Set core.hooksPath for dotfiles repo
   community.general.git_config:

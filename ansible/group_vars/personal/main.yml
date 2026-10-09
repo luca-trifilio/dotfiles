@@ -16,3 +16,10 @@ brew_casks_extra: []
 
 # Personal mac has a single ed25519 key; work mac uses id_ed25519_personal_new (default in all/)
 ssh_github_personal_key: "~/.ssh/id_ed25519"
+
+# Hindsight project tags: directory -> project name (untagged elsewhere)
+hindsight_projects:
+  - { path: "~/Progetti/homelab", name: "homelab" }
+  - { path: "~/Progetti/dotfiles", name: "dotfiles" }
+  - { path: "~/Progetti/storie", name: "storie" }
+  - { path: "~/Progetti/storie-ios", name: "storie" }

@@ -1,0 +1,20 @@
+{# Managed by Ansible (roles/stow). DO NOT EDIT BY HAND. #}
+{# The API token is not stored here: the plugin reads HINDSIGHT_API_TOKEN from the env (zsh/secrets.zsh). #}
+{
+  "serverMode": "self-hosted",
+  "apiUrl": {{ hindsight_api_url | to_json }},
+  "bankId": {{ hindsight_bank_id | to_json }},
+  "optInOnly": false,
+  "retainSessions": false,
+  "gitIngest": "none",
+  "autoSeed": false,
+  "codebaseSurvey": false,
+  "autoInject": "none",
+  "autoUpdate": true,
+  "toolGuideExtra": {{ hindsight_tool_guide_extra | to_json }},
+  "paths": {
+{% for p in hindsight_projects %}
+    {{ p.path | to_json }}: { "retainTags": [{{ ('project:' ~ p.name) | to_json }}] }{{ "," if not loop.last }}
+{% endfor %}
+  }
+}

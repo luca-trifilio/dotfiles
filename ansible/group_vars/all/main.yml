@@ -141,3 +141,12 @@ brew_casks_sudo: []
 
 # Obsidian vault path backing docs/ (only symlinked when enable_docs)
 docs_vault_path: "~/Documents/Taccuino Cerusico/60 - Progetti/dotfiles"
+
+# Hindsight coding-agent memory (rendered to ~/.hindsight/coding-agent.json).
+# The bearer token is HINDSIGHT_API_TOKEN in the SOPS CLI store, not here.
+# hindsight_projects (path -> project tag) is per profile: see group_vars/{personal,work}.
+hindsight_api_url: "https://hindsight.lucatrifilio.it"
+hindsight_bank_id: "bomberone"
+hindsight_tool_guide_extra: >-
+  Never ingest documents, capture initiatives or write corrections to Hindsight
+  unless the user explicitly asks. Propose the content and wait for approval.

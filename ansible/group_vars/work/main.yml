@@ -15,3 +15,11 @@ brew_packages_extra:
 
 # Work-only casks (none yet — add machine-specific casks here)
 brew_casks_extra: []
+
+# Hindsight project tags: directory -> project name (untagged elsewhere).
+# TODO(work mac): fill in the real paths; keep names identical to personal.
+hindsight_projects: []
+#  - { path: "<work path>", name: "homelab" }
+#  - { path: "<work path>", name: "dotfiles" }
+#  - { path: "<work path>", name: "storie" }
+#  - { path: "<work path>", name: "storie" }  # storie-ios
