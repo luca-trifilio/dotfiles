@@ -13,8 +13,13 @@
   "autoUpdate": true,
   "toolGuideExtra": {{ hindsight_tool_guide_extra | to_json }},
   "paths": {
-{% for p in hindsight_projects %}
-    {{ p.path | to_json }}: { "retainTags": [{{ ('project:' ~ p.name) | to_json }}] }{{ "," if not loop.last }}
+{% set entries = [] %}
+{% for d in hindsight_disabled_paths %}
+{% set _ = entries.append((d | to_json) ~ ': { "disabled": true }') %}
 {% endfor %}
+{% for p in hindsight_projects %}
+{% set _ = entries.append((p.path | to_json) ~ ': { "retainTags": [' ~ (('project:' ~ p.name) | to_json) ~ '] }') %}
+{% endfor %}
+    {{ entries | join(",\n    ") }}
   }
 }
