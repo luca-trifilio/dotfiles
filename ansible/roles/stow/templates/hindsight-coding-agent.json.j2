@@ -11,6 +11,12 @@
   "codebaseSurvey": false,
   "autoInject": "none",
   "autoUpdate": true,
+  "banks": {
+    {{ hindsight_bank_id | to_json }}: {
+      "manageBankConfig": false,
+      "recallOptions": { "types": ["world", "experience"] }
+    }
+  },
   "toolGuideExtra": {{ hindsight_tool_guide_extra | to_json }},
   "paths": {
 {% set entries = [] %}
