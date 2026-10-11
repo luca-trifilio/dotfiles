@@ -4,16 +4,17 @@
   "serverMode": "self-hosted",
   "apiUrl": {{ hindsight_api_url | to_json }},
   "bankId": {{ hindsight_bank_id | to_json }},
-  "optInOnly": false,
-  "retainSessions": false,
+  "optInOnly": true,
+  "optInPaths": {{ hindsight_opt_in_paths | to_json }},
+  "retainSessions": true,
   "gitIngest": "none",
-  "autoSeed": false,
-  "codebaseSurvey": false,
-  "autoInject": "none",
+  "autoSeed": true,
+  "codebaseSurvey": true,
+  "autoInject": "reflect",
   "autoUpdate": true,
   "banks": {
     {{ hindsight_bank_id | to_json }}: {
-      "manageBankConfig": false,
+      "manageBankConfig": true,
       "recallOptions": { "types": ["world", "experience"] }
     }
   },

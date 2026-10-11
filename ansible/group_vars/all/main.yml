@@ -147,12 +147,16 @@ docs_vault_path: "~/Documents/Taccuino Cerusico/60 - Progetti/dotfiles"
 # hindsight_projects (path -> project tag) is per profile: see group_vars/{personal,work}.
 hindsight_api_url: "https://hindsight.lucatrifilio.it"
 hindsight_bank_id: "bighead"
+# Memory runs ONLY under these directories (optInOnly); everything else is inert.
+hindsight_opt_in_paths:
+  - "~/Progetti"
 # Directories where Hindsight is fully off (hard disable, no memory).
 hindsight_disabled_paths:
   - "~/Documents/Capa di Bomba"
 hindsight_tool_guide_extra: >-
-  Never ingest documents, capture initiatives or write corrections to Hindsight
-  unless the user explicitly asks. Propose the content and wait for approval.
+  Capture initiatives automatically after the user approves a plan, as
+  described above. Never ingest documents or write corrections to Hindsight
+  unless the user explicitly asks; propose the content and wait for approval.
   Never include passwords, tokens, API keys, private keys or other secrets in
   any Hindsight write: redact them and say where they are kept instead.
   If hindsight_search_knowledge_pages returns nothing, call hindsight_reflect
