@@ -16,10 +16,15 @@ function dotfiles-apply() {
     MacBook-Pro-M4-Max-di-Luca) local limit=personal-mac ;;
     *) echo "dotfiles-apply: unknown hostname"; return 1 ;;
   esac
-  SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt" \
-    ansible-playbook "$dotfiles_dir/ansible/playbooks/site.yml" \
-    --limit "$limit" \
-    --ask-become-pass
+  # ansible.cfg (inventory, roles_path) is only read from the cwd: run from ansible/.
+  # Subshell so the caller's cwd is untouched.
+  (
+    cd "$dotfiles_dir/ansible" || return 1
+    SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt" \
+      ansible-playbook playbooks/site.yml \
+      --limit "$limit" \
+      --ask-become-pass
+  )
 }
 alias kns='kubens'
 alias kx='kubectx'
@@ -45,3 +50,24 @@ function y() {
 if [[ "$(<~/.config/zsh/machine_profile)" == work ]]; then
   alias clp='CLAUDE_CONFIG_DIR="$HOME/.claude-personal" claude'
 fi
+
+# Claude Code through the local LiteLLM proxy (~/Progetti/Personale/llm-proxy); starts the containers if needed.
+# Plain `claude` bypasses the proxy.
+claude-proxy() {
+  local dir=~/Progetti/Personale/llm-proxy url=http://localhost:4000
+  if ! curl -fsS -m 2 "$url/health/liveliness" >/dev/null 2>&1; then
+    docker info >/dev/null 2>&1 || { echo "claude-proxy: docker is not running" >&2; return 1; }
+    echo "claude-proxy: starting proxy containers..." >&2
+    docker compose --project-directory "$dir" up -d >/dev/null || return 1
+    local i
+    for i in {1..40}; do
+      curl -fsS -m 2 "$url/health/liveliness" >/dev/null 2>&1 && break
+      sleep 2
+    done
+    curl -fsS -m 2 "$url/health/liveliness" >/dev/null 2>&1 || { echo "claude-proxy: proxy did not become healthy" >&2; return 1; }
+  fi
+  env -u ANTHROPIC_AUTH_TOKEN -u ANTHROPIC_API_KEY \
+    ANTHROPIC_BASE_URL=$url \
+    ANTHROPIC_CUSTOM_HEADERS="x-litellm-api-key: Bearer $(<$dir/.claude-code.key)" \
+    command claude "$@"
+}
