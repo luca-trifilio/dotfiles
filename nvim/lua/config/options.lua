@@ -9,3 +9,10 @@ vim.g.maplocalleader = ","
 
 -- LazyVim disables wrap by default; enable it for text visualization
 vim.opt.wrap = true
+
+-- Avro schemas (.avsc) are plain JSON: reuse the json filetype for jsonls + SchemaStore
+vim.filetype.add({
+  extension = {
+    avsc = "json",
+  },
+})
