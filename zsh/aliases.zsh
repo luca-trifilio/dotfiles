@@ -2,6 +2,7 @@ alias ll='eza -lh --icons --git'
 alias la='eza -lah --icons --git'
 alias lt='eza --tree --icons'
 alias n='nvim'
+alias e='emacs -nw'
 alias cheat='open ~/Progetti/dotfiles/cheatsheet.html'
 alias c='clear'
 alias python=python3

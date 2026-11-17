@@ -1,4 +1,7 @@
 eval "$(fzf --zsh)"
+# fzf --zsh rebinds Tab to fzf-completion; give it back to fzf-tab
+bindkey -M viins '^I' fzf-tab-complete
+bindkey -M emacs '^I' fzf-tab-complete
 [ -f "$HOME/.config/fzf-git.sh/fzf-git.sh" ] && source "$HOME/.config/fzf-git.sh/fzf-git.sh"
 
 # Catppuccin Macchiato
