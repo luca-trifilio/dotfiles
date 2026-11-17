@@ -71,3 +71,6 @@ function k9s() {
   _kube_is_local_cmd "$@" || _kube_ensure_login "$@" || return 1
   command k9s "$@"
 }
+
+# krew (kubectl plugin manager), installed by the ansible shell role.
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"

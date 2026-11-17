@@ -38,6 +38,22 @@
     creates: "{{ ansible_env.HOME }}/.bun/bin/bun"
   tags: shell
 
+- name: Install krew (kubectl plugin manager)
+  # Official install script from the krew docs; kubectl comes from the homebrew role.
+  ansible.builtin.shell:
+    cmd: |
+      set -e
+      cd "$(mktemp -d)"
+      OS="$(uname | tr '[:upper:]' '[:lower:]')"
+      ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')"
+      KREW="krew-${OS}_${ARCH}"
+      curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz"
+      tar zxf "${KREW}.tar.gz"
+      ./"${KREW}" install krew
+    executable: /bin/bash
+    creates: "{{ ansible_env.HOME }}/.krew/bin/kubectl-krew"
+  tags: shell
+
 - name: Clone TPM (tmux plugin manager)  # noqa: latest[git]
   # Same as OMZ plugins: default branch, cloned once (update: false).
   ansible.builtin.git:
