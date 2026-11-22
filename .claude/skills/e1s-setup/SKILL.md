@@ -9,7 +9,7 @@ description: Use when the user asks to "set up e1s", "configure e1s", "e1s theme
 `e1s` is a terminal UI for browsing and managing AWS ECS resources.
 Config lives at `~/.config/e1s/config.yml` (XDG), managed via stow.
 
-The zsh function in `.zshrc` wraps `e1s` to always prompt for an AWS SSO profile via fzf and run `aws sso login` before launching.
+The zsh function in `zsh/aws.zsh` wraps `e1s` to prompt for an AWS SSO profile via fzf and run `aws sso login` before launching.
 
 ## File layout in dotfiles
 
@@ -19,11 +19,9 @@ The zsh function in `.zshrc` wraps `e1s` to always prompt for an AWS SSO profile
 
 Stowed as a regular XDG package — no special `.stowrc` changes needed.
 
-## Brewfile
+## Install
 
-```
-brew "keidarcy/tap/e1s"
-```
+`keidarcy/tap/e1s` in `brew_packages_extra` (`ansible/group_vars/work/main.yml`, work only).
 
 ## config.yml
 
@@ -49,7 +47,7 @@ colors:
 All available color keys: `BgColor`, `FgColor`, `BorderColor`, `Black`, `Red`, `Green`, `Yellow`, `Blue`, `Magenta`, `Cyan`, `Gray`.
 Hex colors and W3C named colors are both supported. Built-in named themes (e.g. `dracula`, `rose-pine`) can be set via `theme:` key instead.
 
-## zsh wrapper (in zsh/zsh/config/aliases.zsh or similar)
+## zsh wrapper (`zsh/aws.zsh`)
 
 ```zsh
 e1s () {

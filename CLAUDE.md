@@ -6,25 +6,21 @@ Personal dotfiles at `~/Progetti/dotfiles`, managed with **GNU Stow**.
 
 Per-tool docs with current config state, paths, and gotchas: `docs/index.md`.
 
-`docs/` is **not versioned** — it's a symlink to an Obsidian vault folder managed externally. Create it manually on a new machine:
-
-```zsh
-ln -s /path/to/obsidian/vault/dotfiles ~/Progetti/dotfiles/docs
-```
+`docs/<tool>.md` are file symlinks into the Obsidian vault, created by the Ansible `macos` role (`Symlink docs from Obsidian vault`, only when `enable_docs`, i.e. personal). Only `docs/adr/` is versioned (see `.gitignore`).
 
 ## How stow works here
 
-`.stowrc` sets `--target=~/.config`. Running `stow .` symlinks every top-level directory into `~/.config/` automatically. No changes to `.stowrc` or `setup.sh` needed when adding XDG packages.
+`.stowrc` sets `--target=~/.config`. Running `stow .` symlinks every top-level directory into `~/.config/` automatically. No changes to `.stowrc` needed when adding XDG packages.
 
-Some packages are excluded from `stow .` and handled separately in `setup.sh`:
+Some packages are excluded from `stow .` and handled by Ansible (`stow` role for home-target, `macos` role for karabiner/colima):
 
 | Package | Target | Command |
 |---|---|---|
 | `zshrc` | `~/` | `stow --target="$HOME" zshrc` |
 | `gitconfig` | `~/` | `stow --target="$HOME" gitconfig` |
 | `claude` | `~/.claude/` | `stow --target="$HOME" claude` |
-| `karabiner` | `~/.config/karabiner/` | `ln -sf` (file symlink, not stow) |
-| `colima` | ignored in `.stowrc` | `colima.yaml` già linkato manualmente; la dir è gestita da Colima a runtime (contiene socket) |
+| `karabiner` | `~/.config/karabiner/` | `ln -sfn` directory symlink (`macos` role; see gotcha below) |
+| `colima` | ignored in `.stowrc` | `macos` role: file symlink `colima.yaml` + `~/.colima → ~/.config/colima`; la dir è gestita da Colima a runtime (contiene socket) |
 
 ## Fresh machine bootstrap
 
@@ -51,7 +47,7 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt \
 
 Manual steps non automatizzabili:
 - **Nerd Font** — installa da [nerdfonts.com](https://www.nerdfonts.com)
-- **Karabiner-Elements** — Input Monitoring + Accessibility in Impostazioni di Sistema → Privacy e Sicurezza; Driver Extension in Generale → Elementi di Login ed Estensioni
+- **kanata / Karabiner-Elements** — binario kanata (path Cellar) in Input Monitoring + Accessibility; Driver Extension KE in Generale → Elementi di Login ed Estensioni (vedi skill `kanata-macos-setup`)
 - **tmux plugins** — dentro tmux: `prefix + I`
 
 ## Adding a new XDG package
@@ -68,9 +64,9 @@ git add <app> && git commit -m "add <app>"
 ```zsh
 mkdir ~/Progetti/dotfiles/<app>
 # Add to .stowrc:  --ignore=^<app>$
-# Add to setup.sh: stow --target="$HOME" <app>
+# Add <app> to the home-target loop in ansible/roles/stow/tasks/main.yml
 cd ~/Progetti/dotfiles && stow --target="$HOME" <app>
-git add <app> .stowrc setup.sh && git commit -m "add <app>"
+git add <app> .stowrc ansible/roles/stow/tasks/main.yml && git commit -m "add <app>"
 ```
 
 ## Key gotchas
@@ -92,6 +88,8 @@ git add <app> .stowrc setup.sh && git commit -m "add <app>"
 - `completions.zsh` — zstyle, fzf-tab config
 - `aliases.zsh` — shell aliases
 - `tmux.zsh` — tmux wrapper function
+- `aws.zsh` — AWS helpers (e1s wrapper)
+- `kube.zsh` — Kubernetes helpers
 - `zoxide.zsh` — zoxide init (`--cmd cd` replaces `cd`)
 - `fzf.zsh` — fzf init, fd integration, bat/eza previews, fzf-git, Catppuccin theme
 - `vimode.zsh` — vi keybindings + cursor shape; unbinds `^G` for fzf-git chords

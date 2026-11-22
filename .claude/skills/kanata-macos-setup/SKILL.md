@@ -93,18 +93,15 @@ Use `__HOME__` as placeholder — the install step substitutes it with `$HOME`.
 
 ## Troubleshooting: kanata stopped working after dotfiles change
 
-**Symptom**: kanata smette di funzionare dopo una modifica al plist template in dotfiles (es. refactor, nuovo path, nuovi argomenti).
+**Symptom**: kanata stops working after a change to its plist template in dotfiles.
 
-**Cause**: il plist in `/Library/LaunchDaemons/` non si aggiorna automaticamente quando cambia il template nel repo — sono due file separati. Il playbook ansible va rieseguito manualmente per propagare il cambiamento.
+**Cause**: `/Library/LaunchDaemons/com.lucatrifilio.kanata.plist` is rendered from `ansible/roles/macos/templates/kanata.plist.j2` and does not update until the playbook runs again.
 
-**Fix**: reinstalla il plist dal template aggiornato:
+**Fix**: re-run the macos role:
 ```bash
-cd ~/Progetti/dotfiles
-sed "s|__HOME__|$HOME|g" kanata-daemon/com.lucatrifilio.kanata.plist > /tmp/kanata.plist
-sudo cp /tmp/kanata.plist /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
-sudo launchctl bootout system/com.lucatrifilio.kanata 2>/dev/null || true
-sudo launchctl bootstrap system /Library/LaunchDaemons/com.lucatrifilio.kanata.plist
-sudo launchctl list | grep kanata  # deve mostrare PID numerico
+cd ~/Progetti/dotfiles/ansible
+ansible-playbook playbooks/site.yml --limit <profile>-mac --tags macos,become --ask-become-pass
+sudo launchctl list | grep kanata  # numeric PID = running
 ```
 
 ---
@@ -290,13 +287,9 @@ cat /tmp/karabiner-watchdog.log   # empty unless it actually had to boot somethi
 
 **Fix**: map F-keys explicitly to consumer outputs in `defsrc`/`deflayer` (see template above). Do NOT switch to `process-unmapped-keys no` — it restores media keys but breaks caps lock remapping.
 
-## Brewfile
+## Packages
 
-```
-brew "kanata"
-cask "karabiner-elements"   # REQUIRED — provides the VirtualHIDDevice-Daemon kanata depends on.
-                            # Do not remove after install; only its Core-Service engine is disabled.
-```
+`kanata` (formula) and `karabiner-elements` (cask) in `ansible/group_vars/all/main.yml`. Keep the cask: it provides the VirtualHIDDevice-Daemon kanata depends on; only its Core-Service engine is disabled.
 
 ## Manual steps (new machine)
 

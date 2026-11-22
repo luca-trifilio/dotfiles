@@ -79,8 +79,6 @@ docker context list                # colima should be active (*)
 
 - Socket path: `~/.config/colima/default/docker.sock` (not `/var/run/docker.sock`)
 - Colima creates a Docker context named `colima` automatically on first start
-- `~/.config/zsh/exports.zsh` may be a hardlink (not symlink) to dotfiles source —
-  edits propagate automatically to `~/Progetti/dotfiles/zsh/exports.zsh`
 - Idle memory on host: ~74 MB (limactl processes); VM allocates lazily via
   Apple Virtualization Framework — does not physically reserve 8 GB upfront
 - Docker Desktop can coexist during transition; switch context with

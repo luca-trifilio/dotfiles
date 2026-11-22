@@ -34,7 +34,7 @@ stow .
 
 ## Prerequisites
 
-- `git-delta` and `bat` in `Brewfile` (already present)
+- `git-delta` and `bat` in `brew_packages` (`ansible/group_vars/all/main.yml`)
 - bat theme "Catppuccin Macchiato" in `bat/config` (official catppuccin/delta requirement)
 
 ## Delta flags to remember

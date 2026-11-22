@@ -5,12 +5,6 @@ description: Use when the user asks to "install kubectl", "set up kubens", "conf
 
 # kubectl + kubens/kubectx Setup
 
-## State (as of 2026-08)
-
-- `kubectl` 1.36.1 — installed via `brew install kubectl`
-- `kubectx` / `kubens` 0.11.0 — installed, managed via Ansible
-- `k9s` — installed, managed via Ansible
-
 ## Package list (ansible/group_vars/all/main.yml)
 
 All three tools are in `brew_packages` (see ADR-0002 — `brew/Brewfile` was removed,

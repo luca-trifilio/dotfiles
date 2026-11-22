@@ -67,8 +67,10 @@ Add to `:root` in `<style>`:
 | `--red`     | #ed8796 | lazygit     |
 | `--pink`    | #f5bde6 | lazydocker  |
 | `--sky`     | #91d7e3 | glove80     |
+| `--flamingo`| #f0c6c6 | aerospace   |
+| `--maroon`  | #ee99a0 | yazi        |
 
-For new tools add a Catppuccin Macchiato color not yet listed (e.g. `--maroon: #ee99a0`, `--flamingo: #f0c6c6`).
+For new tools add a Catppuccin Macchiato color not yet listed (e.g. `--rosewater: #f4dbd6`).
 
 ## Standard shortcut card
 

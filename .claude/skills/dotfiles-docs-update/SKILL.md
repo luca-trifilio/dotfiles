@@ -12,9 +12,8 @@ Keep `docs/` in sync with the actual dotfiles state. Docs live in the Obsidian v
 | Changed path | Doc to update |
 |---|---|
 | `aerospace/` | `docs/aerospace.md` |
-| `ansible/` | `docs/ansible.md` |
 | `atuin/` | `docs/atuin.md` |
-| `ansible/group_vars/*/main.yml` | `docs/brew.md` (also `docs/ansible.md`) |
+| `ansible/group_vars/*/main.yml` | `docs/brew.md` |
 | `claude/` | `docs/claude.md` |
 | `zsh/fzf.zsh`, `bat/`, `fzf-git.sh/` | `docs/fzf.md` |
 | `gitconfig/`, `git/` | `docs/git.md` |

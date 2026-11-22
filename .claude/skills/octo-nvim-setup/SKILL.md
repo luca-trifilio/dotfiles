@@ -45,7 +45,7 @@ Octo doesn't manage `gh` auth itself — it shells out via `plenary.job` with an
 
 If a project's `.envrc` exports `GH_TOKEN` to pin `gh` to a specific account
 (e.g. because the repo is private and your `gh` default active account is a
-different one — see `git-multi-identity` skill), Octo's job never sees it,
+different one), Octo's job never sees it,
 silently falls back to `gh`'s default keyring account, and that account gets
 a 404-shaped "could not resolve" error from GitHub for any repo it can't see
 — indistinguishable from a real hostname/repo-name problem at first glance.

@@ -90,12 +90,7 @@ Credential helpers are an exception: Git collects ALL helper entries across all 
 --ignore=^gitconfig$
 ```
 
-`setup.sh` must have:
-```bash
-stow --target="$HOME" gitconfig
-```
-
-On a new machine, after `./setup.sh`, `~/.gitconfig` is a symlink to `dotfiles/gitconfig/.gitconfig`.
+The Ansible `stow` role stows it (`ansible/roles/stow/tasks/main.yml`, home-target loop). After `./setup.sh`, `~/.gitconfig` is a symlink to `dotfiles/gitconfig/.gitconfig`.
 
 ---
 
