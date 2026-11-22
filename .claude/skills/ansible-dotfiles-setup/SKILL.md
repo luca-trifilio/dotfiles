@@ -21,6 +21,7 @@ ansible/
     work/main.yml          # machine_profile, expected_hostname, brew_packages_extra
     work/vault.sops.yaml   # SOPS-encrypted, work only: work_git_email, cf_access_client_id/secret
     personal/main.yml      # machine_profile, expected_hostname, enable_docs
+    personal/vault.sops.yaml  # SOPS-encrypted, NOT decrypted by site.yml (see SOPS vault)
   roles/
     homebrew/              # taps → trust → formulae → casks
     shell/                 # OMZ, plugins, Bun, TPM, fzf-git
@@ -207,10 +208,12 @@ Example vars for obsidian backup: `enable_obsidian_backup`, `obsidian_vault_path
 
 ## SOPS vault
 
-Encrypted with age. Key at `~/.config/sops/age/keys.txt`. Two vaults:
+Encrypted with age. Key at `~/.config/sops/age/keys.txt`. Two vaults are decrypted by `site.yml` pre_tasks:
 
 - `group_vars/all/vault.sops.yaml` — **both profiles**. Loaded unconditionally in `site.yml` pre_tasks (gated only on sops being present). Contains `ssh_homelab_hosts` (homelab SSH host data: internal IPs, Tailscale addresses, usernames).
 - `group_vars/work/vault.sops.yaml` — **work only** (`when: 'work' in group_names`). Contains `work_git_email`, `cf_access_client_id`, `cf_access_client_secret`.
+
+`group_vars/personal/vault.sops.yaml` also exists (since the Ansible migration) but no `load_vars` task decrypts it; `host_group_vars` reads it as plain YAML, so its values stay encrypted strings. Personal-profile secrets (e.g. `cf_access_*` for `gitconfig-local.j2`) come from the `all` vault. Add a `load_vars` task before relying on it, or delete it.
 
 ```bash
 # Edit a vault (sops opens decrypted in $EDITOR, re-encrypts on save)

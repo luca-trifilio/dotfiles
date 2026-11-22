@@ -111,6 +111,10 @@ Plugin files use semantic grouping:
 - `lua/plugins/coding.lua` — gitsigns, language plugins
 - `lua/plugins/notes.lua` — markdown, obsidian, blink.cmp overrides
 - `lua/plugins/snacks.lua` — dashboard, picker, explorer
+- `lua/plugins/editing.lua` — editing helpers (rip-substitute, text-case)
+- `lua/plugins/atlas.lua`, `hardtime.lua` — single-plugin specs
+- `lua/plugins/bruno.lua` — `.bru` filetype + local tree-sitter parser (`~/Progetti/tree-sitter-bru`)
+- `lua/plugins/disabled.lua` — LazyVim defaults turned off
 
 ## Useful stow commands
 

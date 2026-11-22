@@ -90,20 +90,20 @@ docker context list                # colima should be active (*)
 brew uninstall --cask docker
 ```
 
-## Cleanup dopo rimozione manuale di Docker Desktop
+## Cleanup after manual Docker Desktop removal
 
-Se Docker Desktop era già stato rimosso manualmente (senza `brew uninstall --cask docker`),
-possono restare symlink rotti in `/usr/local/bin`:
+If Docker Desktop was removed by hand (without `brew uninstall --cask docker`),
+broken symlinks can remain in `/usr/local/bin`:
 
 ```bash
 ls -la /usr/local/bin/docker* 2>/dev/null
-# se puntano ad /Applications/Docker.app (non esistente) → rimuoverli
+# if they point to /Applications/Docker.app (gone) → remove them
 sudo rm /usr/local/bin/docker /usr/local/bin/docker-compose
 sudo rm /usr/local/bin/docker-credential-desktop /usr/local/bin/docker-credential-osxkeychain
-# ignora "no such file or directory" per quelli già mancanti
+# ignore "no such file or directory" for ones already missing
 ```
 
-Poi installa il docker CLI standalone:
+Then install the standalone docker CLI:
 
 ```bash
 brew install docker
@@ -111,60 +111,59 @@ brew install docker
 
 ## Fix: Colima XDG config (`~/.colima` → `~/.config/colima`)
 
-Colima crea `~/.colima` per default e legge `XDG_CONFIG_HOME` solo se quella directory non
-esiste già. `brew services` rigenera il LaunchAgent plist dalla formula ad ogni
-start/restart/upgrade, **senza mai includere `XDG_CONFIG_HOME`** — quindi una migrazione
-one-shot (`mv ~/.colima ~/.config/colima`) o un patch del plist regrediscono al riavvio
-successivo (successo apparente, poi si ripresenta lo stesso problema).
+Colima creates `~/.colima` by default and reads `XDG_CONFIG_HOME` only if that directory
+doesn't exist yet. `brew services` regenerates the LaunchAgent plist from the formula on every
+start/restart/upgrade, **never including `XDG_CONFIG_HOME`** — so a one-shot migration
+(`mv ~/.colima ~/.config/colima`) or a plist patch regresses on the next reboot
+(looks fixed, then the problem returns).
 
-**Fix permanente:** rendere `~/.colima` uno **symlink** verso `~/.config/colima`, invece di
-spostare la directory. Colima risolve sempre `~/.colima` per primo, quindi finisce sulla
-directory XDG indipendentemente da come/quando il servizio viene avviato — nessuna
-dipendenza da env var che brew possa cancellare.
+**Permanent fix:** make `~/.colima` a **symlink** to `~/.config/colima` instead of moving
+the directory. Colima always resolves `~/.colima` first, so it lands on the XDG directory
+however the service starts — no dependency on an env var brew can drop.
 
-**Ansible lo gestisce automaticamente** (task `Symlink ~/.colima to ~/.config/colima` in
-`roles/macos/tasks/main.yml`, idempotente — riapplicato ad ogni run).
+**Ansible handles this** (task `Symlink ~/.colima to ~/.config/colima` in
+`roles/macos/tasks/main.yml`, idempotent — reapplied every run).
 
-Per applicare manualmente (senza Ansible):
+Manual (without Ansible):
 
 ```bash
 colima stop
-rm -rf ~/.colima          # o: mv ~/.colima ~/.config/colima se contiene ancora dati reali
+rm -rf ~/.colima          # or: mv ~/.colima ~/.config/colima if it still holds real data
 ln -sfn ~/.config/colima ~/.colima
 colima start
 ```
 
-Il warning `found ~/.colima, ignoring $XDG_CONFIG_HOME` continua a comparire anche con lo
-symlink (colima non distingue directory reale da symlink) — è cosmetic, ignoralo: `colima
-status` mostra comunque `docker socket: unix:///Users/.../.colima/default/docker.sock`, che
-risolve a `~/.config/colima/default/docker.sock`.
+The warning `found ~/.colima, ignoring $XDG_CONFIG_HOME` keeps appearing with the symlink
+(colima can't tell a real directory from a symlink) — cosmetic, ignore it: `colima status`
+still shows `docker socket: unix:///Users/.../.colima/default/docker.sock`, which resolves to
+`~/.config/colima/default/docker.sock`.
 
-## Fix: `/var/run/docker.sock` mancante o punta a Docker Desktop
+## Fix: `/var/run/docker.sock` missing or pointing to Docker Desktop
 
-Dopo la rimozione di Docker Desktop, `/var/run/docker.sock` può mancare o puntare a
-`~/.docker/run/docker.sock` (non più esistente). Testcontainers fallisce con
+After removing Docker Desktop, `/var/run/docker.sock` may be missing or point to
+`~/.docker/run/docker.sock` (gone). Testcontainers fails with
 `Could not find a valid Docker environment`.
 
-**Ansible lo gestisce automaticamente** via LaunchDaemon (`com.lucatrifilio.colima-docker-sock`)
-installato in `/Library/LaunchDaemons/`. Il daemon ricrea il symlink al boot:
+**Ansible handles this** via a LaunchDaemon (`com.lucatrifilio.colima-docker-sock`)
+installed in `/Library/LaunchDaemons/`. The daemon recreates the symlink at boot:
 
 ```
 /var/run/docker.sock → ~/.config/colima/default/docker.sock
 ```
 
-Per applicare manualmente senza Ansible:
+Manual (without Ansible):
 
 ```bash
 sudo ln -sf "$HOME/.config/colima/default/docker.sock" /var/run/docker.sock
 ```
 
-**Nota:** il fix manuale non persiste ai reboot — usare il LaunchDaemon via Ansible.
+**Note:** the manual fix doesn't survive reboots — use the Ansible LaunchDaemon.
 
-## Fix: `default` docker context punta a path inesistente
+## Fix: `default` docker context points to a missing path
 
-Il context `default` è built-in e non può essere rimosso né aggiornato. Se mostra un
-path sbagliato (es. `~/.colima/default/docker.sock`), ignorarlo — è cosmetic.
-Verificare che il context `colima` sia attivo (`*`) con `docker context list`.
+The `default` context is built in and can't be removed or updated. If it shows a wrong
+path (e.g. `~/.colima/default/docker.sock`), ignore it — cosmetic.
+Check that the `colima` context is active (`*`) with `docker context list`.
 
-Se `DOCKER_HOST` è impostato nel shell, sovrascrive il context attivo e fa comparire
-`default *` anche se il context colima è selezionato. Soluzione: non impostare `DOCKER_HOST`.
+If `DOCKER_HOST` is set in the shell, it overrides the active context and shows
+`default *` even when colima is selected. Fix: don't set `DOCKER_HOST`.
